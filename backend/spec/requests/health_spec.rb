@@ -11,7 +11,7 @@
                  properties: {
                    status: { type: :string, example: "ok" }
                  },
-                 required: ["status"]
+                 required: [ "status" ]
 
           run_test!
         end
