@@ -25,5 +25,63 @@ paths:
                     example: ok
                 required:
                 - status
+  "/me":
+    get:
+      summary: Returns current user
+      tags:
+      - Sessions
+      responses:
+        '200':
+          description: current user returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        nullable: true
+                        example: Test User
+                      email:
+                        type: string
+                        nullable: true
+                        example: test@example.com
+                      image:
+                        type: string
+                        nullable: true
+                        example: https://example.com/avatar.png
+                    required:
+                    - id
+                    - name
+                    - email
+                    - image
+                required:
+                - user
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: unauthorized
+                required:
+                - error
+  "/logout":
+    delete:
+      summary: Log out current user
+      tags:
+      - Sessions
+      responses:
+        '204':
+          description: logged out
 components:
   schemas: {}
