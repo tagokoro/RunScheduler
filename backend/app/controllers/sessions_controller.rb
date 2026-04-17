@@ -18,7 +18,7 @@ class SessionsController < ApplicationController
 
     log_in user
 
-    redirect_to "http://localhost:3001/", allow_other_host: true #TODO FRONTEND_URLに分ける
+    redirect_to "http://localhost:3001/", allow_other_host: true # TODO FRONTEND_URLに分ける
   end
 
   def destroy
@@ -29,6 +29,6 @@ class SessionsController < ApplicationController
   private
 
   def auth_hash
-    request.env['omniauth.auth']
+    request.env["omniauth.auth"]
   end
 end
