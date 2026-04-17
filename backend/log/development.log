@@ -13,3 +13,42 @@ Completed 200 OK in 27ms (Views: 7.7ms | ActiveRecord: 0.0ms (0 queries, 0 cache
   [1m[36mActiveRecord::InternalMetadata Create (1.5ms)[0m  [1m[32mINSERT INTO "ar_internal_metadata" ("key", "value", "created_at", "updated_at") VALUES ('environment', 'development', '2026-04-02 16:25:19.773017', '2026-04-02 16:25:19.773022') RETURNING "key"[0m
   [1m[35m (0.2ms)[0m  [1m[34mSELECT pg_advisory_unlock(5277929974492897470)[0m
   [1m[36mActiveRecord::SchemaMigration Load (0.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+Started GET "/" for 192.168.65.1 at 2026-04-17 05:58:37 +0000
+  [1m[36mActiveRecord::SchemaMigration Load (2.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+Processing by Rails::WelcomeController#index as HTML
+  Rendering /usr/local/bundle/gems/railties-7.2.3.1/lib/rails/templates/rails/welcome/index.html.erb
+  Rendered /usr/local/bundle/gems/railties-7.2.3.1/lib/rails/templates/rails/welcome/index.html.erb (Duration: 0.9ms | GC: 0.0ms)
+Completed 200 OK in 16ms (Views: 4.9ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+
+
+Started GET "/icon.png" for 192.168.65.1 at 2026-04-17 05:58:38 +0000
+  
+ActionController::RoutingError (No route matches [GET] "/icon.png"):
+  
+Started GET "/me" for 192.168.65.1 at 2026-04-17 05:58:49 +0000
+Processing by SessionsController#show as */*
+Filter chain halted as :check_logged_in rendered or redirected
+Completed 401 Unauthorized in 9ms (Views: 0.2ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+
+
+Started GET "/auth/google_oauth2" for 192.168.65.1 at 2026-04-17 05:58:55 +0000
+Started GET "/auth/google_oauth2/callback?state=c6ac22c39ef8b799f6b708e489a49b93f8220618c8f526c3&iss=https%3A%2F%2Faccounts.google.com&code=4%2F0Aci98E9xIlvVzJmqfNAjximm5evTgb3G3_7nXK2oK4iVZUPVlwHtUtKOk4qA0bjKd0JIWw&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&authuser=0&prompt=none" for 192.168.65.1 at 2026-04-17 05:59:04 +0000
+  
+OAuth2::ConnectionError (Failed to open TCP connection to www.googleapis.com:443 (execution expired)):
+
+Causes:
+Faraday::ConnectionFailed (Failed to open TCP connection to www.googleapis.com:443 (execution expired))
+Net::OpenTimeout (Failed to open TCP connection to www.googleapis.com:443 (execution expired))
+  
+Started GET "/favicon.ico" for 192.168.65.1 at 2026-04-17 06:00:16 +0000
+  
+ActionController::RoutingError (No route matches [GET] "/favicon.ico"):
+  
+Started GET "/auth/google_oauth2/callback?state=c6ac22c39ef8b799f6b708e489a49b93f8220618c8f526c3&iss=https%3A%2F%2Faccounts.google.com&code=4%2F0Aci98E9xIlvVzJmqfNAjximm5evTgb3G3_7nXK2oK4iVZUPVlwHtUtKOk4qA0bjKd0JIWw&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&authuser=0&prompt=none" for 192.168.65.1 at 2026-04-17 06:04:05 +0000
+  
+OAuth2::ConnectionError (Failed to open TCP connection to oauth2.googleapis.com:443 (execution expired)):
+
+Causes:
+Faraday::ConnectionFailed (Failed to open TCP connection to oauth2.googleapis.com:443 (execution expired))
+Net::OpenTimeout (Failed to open TCP connection to oauth2.googleapis.com:443 (execution expired))
+  

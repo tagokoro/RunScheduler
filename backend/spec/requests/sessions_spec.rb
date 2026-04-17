@@ -23,7 +23,7 @@ RSpec.describe "Sessions API", type: :request do
             info: {
               name: user.name,
               email: user.email,
-              image: user.image,
+              image: user.image
             }
           )
 
@@ -43,7 +43,7 @@ RSpec.describe "Sessions API", type: :request do
                     email: { type: :string, nullable: true, example: "test@example.com" },
                     image: { type: :string, nullable: true, example: "https://example.com/avatar.png" }
                   },
-                  required: ["id", "name", "email", "image" ]
+                  required: [ "id", "name", "email", "image" ]
                 }
               },
               required: [ "user" ]
@@ -106,7 +106,7 @@ RSpec.describe "Sessions API", type: :request do
 
         expect(response).to have_http_status(:unauthorized)
         parsed_body = JSON.parse(response.body)
-        expect(parsed_body).to eq({ "error" => "unauthorized"})
+        expect(parsed_body).to eq({ "error" => "unauthorized" })
       end
     end
 
