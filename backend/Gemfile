@@ -49,6 +49,6 @@ group :development, :test do
 
   gem "rswag-specs"
 end
-gem 'omniauth'
+gem "omniauth"
 gem "omniauth-rails_csrf_protection"
-gem 'omniauth-google-oauth2'
+gem "omniauth-google-oauth2"
