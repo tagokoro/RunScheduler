@@ -1,6 +1,7 @@
 class CreateProfilesAndTrainingRecords < ActiveRecord::Migration[7.2]
   def change
     create_table :profiles, id: :uuid do |t|
+      enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
       t.references :user,
                     null: false,
                     foreign_key: { on_delete: :cascade },
@@ -22,12 +23,12 @@ class CreateProfilesAndTrainingRecords < ActiveRecord::Migration[7.2]
                     null: false,
                     foreign_key: { on_delete: :cascade }
       t.date :date, null: false
-      t.text :traning_type, null: false
+      t.text :training_type, null: false
       t.text :description
       t.decimal :distance_km, precision: 5, scale: 2
       t.integer :duration_minutes
       t.text :pace
-      t.boolean :complated, default: false
+      t.boolean :completed, default: false
       t.text :feedback
       t.text :notes
 

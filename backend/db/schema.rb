@@ -12,6 +12,7 @@
 
 ActiveRecord::Schema[7.2].define(version: 2026_04_20_094140) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
   create_table "profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -32,12 +33,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_094140) do
   create_table "training_records", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.bigint "user_id", null: false
     t.date "date", null: false
-    t.text "traning_type", null: false
+    t.text "training_type", null: false
     t.text "description"
     t.decimal "distance_km", precision: 5, scale: 2
     t.integer "duration_minutes"
     t.text "pace"
-    t.boolean "complated", default: false
+    t.boolean "completed", default: false
     t.text "feedback"
     t.text "notes"
     t.datetime "created_at", null: false
