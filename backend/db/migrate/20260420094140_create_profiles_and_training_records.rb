@@ -34,7 +34,7 @@ class CreateProfilesAndTrainingRecords < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :training_records, [:user_id, :date], unique: true
+    add_index :training_records, [ :user_id, :date ], unique: true
     add_index :training_records, :date
   end
 end
