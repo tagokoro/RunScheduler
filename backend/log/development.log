@@ -52,3 +52,40 @@ Causes:
 Faraday::ConnectionFailed (Failed to open TCP connection to oauth2.googleapis.com:443 (execution expired))
 Net::OpenTimeout (Failed to open TCP connection to oauth2.googleapis.com:443 (execution expired))
   
+  [1m[36mActiveRecord::SchemaMigration Load (1.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT pg_try_advisory_lock(5277929974492897470)[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+Reverting CreateProfilesAndTrainingRecords (20260420094140)
+  [1m[36mTRANSACTION (0.6ms)[0m  [1m[35mBEGIN[0m
+  [1m[35m (4.0ms)[0m  [1m[35mDROP INDEX  "index_training_records_on_date"[0m
+  [1m[35m (3.3ms)[0m  [1m[35mDROP INDEX  "index_training_records_on_user_id_and_date"[0m
+  [1m[35m (4.4ms)[0m  [1m[35mDROP TABLE "training_records"[0m
+  [1m[35m (1.8ms)[0m  [1m[35mDROP TABLE "profiles"[0m
+  [1m[36mActiveRecord::SchemaMigration Destroy (0.5ms)[0m  [1m[31mDELETE FROM "schema_migrations" WHERE "schema_migrations"."version" = '20260420094140'[0m
+  [1m[36mTRANSACTION (4.7ms)[0m  [1m[35mCOMMIT[0m
+  [1m[35m (1.1ms)[0m  [1m[34mSELECT pg_advisory_unlock(5277929974492897470)[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.2ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT pg_try_advisory_lock(5277929974492897470)[0m
+  [1m[36mActiveRecord::SchemaMigration Load (1.3ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+  [1m[36mActiveRecord::InternalMetadata Load (1.0ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = $1 ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1[0m  [[nil, "environment"]]
+Migrating to CreateProfilesAndTrainingRecords (20260420094140)
+  [1m[36mTRANSACTION (0.6ms)[0m  [1m[35mBEGIN[0m
+  [1m[35mSQL (17.4ms)[0m  [1m[35mCREATE EXTENSION IF NOT EXISTS "pgcrypto"[0m
+  [1m[35m (7.7ms)[0m  [1m[35mCREATE TABLE "profiles" ("id" uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY, "user_id" bigint NOT NULL, "weight" decimal(4,1), "age" integer, "best_5k_seconds" integer, "best_half_seconds" integer, "best_full_seconds" integer, "target_race_type" text NOT NULL, "target_time_seconds" integer NOT NULL, "race_date" date NOT NULL, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_e424190865"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+ ON DELETE CASCADE)[0m
+  [1m[35m (2.1ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_profiles_on_user_id" ON "profiles" ("user_id")[0m
+  [1m[35m (5.7ms)[0m  [1m[35mCREATE TABLE "training_records" ("id" uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY, "user_id" bigint NOT NULL, "date" date NOT NULL, "training_type" text NOT NULL, "description" text, "distance_km" decimal(5,2), "duration_minutes" integer, "pace" text, "completed" boolean DEFAULT FALSE, "feedback" text, "notes" text, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_809fac56f8"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+ ON DELETE CASCADE)[0m
+  [1m[35m (1.3ms)[0m  [1m[35mCREATE INDEX "index_training_records_on_user_id" ON "training_records" ("user_id")[0m
+  [1m[35m (1.6ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_training_records_on_user_id_and_date" ON "training_records" ("user_id", "date")[0m
+  [1m[35m (2.4ms)[0m  [1m[35mCREATE INDEX "index_training_records_on_date" ON "training_records" ("date")[0m
+  [1m[36mActiveRecord::SchemaMigration Create (0.5ms)[0m  [1m[32mINSERT INTO "schema_migrations" ("version") VALUES ('20260420094140') RETURNING "version"[0m
+  [1m[36mTRANSACTION (2.4ms)[0m  [1m[35mCOMMIT[0m
+  [1m[35m (0.8ms)[0m  [1m[34mSELECT pg_advisory_unlock(5277929974492897470)[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.6ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
