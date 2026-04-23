@@ -57,7 +57,7 @@ export default function Header() {
 
   return (
     <header className="h-20 w-full bg-blue-700">
-      <div className="relative mx-auto flex h-full max-w-6xl items-center px-6">
+      <div className="relative mx-auto flex h-full w-full items-center px-6">
         <div className="flex flex-1 justify-start">
           <NavigationMenu>
             <NavigationMenuList className="flex gap-3">
@@ -86,7 +86,7 @@ export default function Header() {
 
         <div className="flex flex-1 justify-end">
           <NavigationMenu>
-            <NavigationMenuList className="flex gap-6 text-white text-lg">
+            <NavigationMenuList className="flex gap-6 text-white text-xl">
               <NavigationMenuItem>
                 <Link href="/">Home</Link>
               </NavigationMenuItem>
@@ -103,7 +103,7 @@ export default function Header() {
                 {user?.id != null ?
                   <>
                     <NavigationMenuTrigger>
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-9 w-9">
                         {user?.image ? (
                           <AvatarImage
                             src={user.image}
