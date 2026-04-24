@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build: ./backend
@@ -13,19 +11,6 @@ services:
       - DATABASE_URL=postgresql://postgres:password@db:5432/app_development
     depends_on:
       - db
-
-  frontend:
-    build: ./frontend
-    command: npm run dev
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - "3001:3001"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3000
-    depends_on:
-      - backend
 
   db:
     image: postgres:14-alpine
