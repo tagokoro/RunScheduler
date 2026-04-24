@@ -46,14 +46,14 @@ export default function Header() {
     void fetchCurrentUser();
   }, []);
 
-  const handlLogout = async() => {
-    const response = await fetch(`${apiUrl}/logout`,{
+  const handlLogout = async () => {
+    const response = await fetch(`${apiUrl}/logout`, {
       method: "DELETE",
-      credentials: "include"
+      credentials: "include",
     });
 
-    if(response.ok) setUser(null);
-  }
+    if (response.ok) setUser(null);
+  };
 
   return (
     <header className="h-20 w-full bg-blue-700">
@@ -61,8 +61,7 @@ export default function Header() {
         <div className="flex flex-1 justify-start">
           <NavigationMenu>
             <NavigationMenuList className="flex gap-3">
-              <NavigationMenuItem>
-              </NavigationMenuItem>
+              <NavigationMenuItem></NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
         </div>
@@ -100,7 +99,7 @@ export default function Header() {
                 <Link href="/plans">Plan</Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                {user?.id != null ?
+                {user?.id != null ? (
                   <>
                     <NavigationMenuTrigger>
                       <Avatar className="h-9 w-9">
@@ -111,7 +110,9 @@ export default function Header() {
                           />
                         ) : (
                           <AvatarFallback>
-                            {user?.name?.slice(0, 1) ?? user?.email?.slice(0, 1) ?? "R"}
+                            {user?.name?.slice(0, 1) ??
+                              user?.email?.slice(0, 1) ??
+                              "R"}
                           </AvatarFallback>
                         )}
                       </Avatar>
@@ -119,17 +120,19 @@ export default function Header() {
                     <NavigationMenuContent className="bg-blue-50">
                       <ul className="w-48 gap-3 text-lg">
                         <li>設定</li>
-                        <li><button type="button" onClick={handlLogout}>SignOut</button></li>
+                        <li>
+                          <button type="button" onClick={handlLogout}>
+                            SignOut
+                          </button>
+                        </li>
                       </ul>
                     </NavigationMenuContent>
                   </>
-                :
-                <button className="hover:bg-white/15">
-                  <Link href={`${apiUrl}/auth/google_oauth2`}>
-                     Login
-                  </Link>
-                </button>
-                }
+                ) : (
+                  <button className="hover:bg-white/15">
+                    <Link href={`${apiUrl}/auth/google_oauth2`}>Login</Link>
+                  </button>
+                )}
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
