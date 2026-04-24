@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" \"*.{js,jsx,ts,tsx,json,css,md}\"",
-    "format:check": "prettier --check \"app/**/*.{js,jsx,ts,tsx,json,css,md}\" \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" \"*.{js,jsx,ts,tsx,json,css,md}\""
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md,yaml,yml}\" \"*.{js,jsx,ts,tsx,json,css,md,yaml,yml}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md,yaml,yml}\" \"*.{js,jsx,ts,tsx,json,css,md,yaml,yml}\""
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
