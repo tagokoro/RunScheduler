@@ -1,6 +1,4 @@
 class Profile < ApplicationRecord
-  include ActiveModel::Validations
-
   belongs_to :user
 
   TARGET_RACE_TYPES = %w[5k half full].freeze
@@ -11,12 +9,12 @@ class Profile < ApplicationRecord
   validates :best_half_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :best_full_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :target_race_type,
+    presence: true,
     inclusion: {
       in: TARGET_RACE_TYPES,
       message: "is not included in the list"
-    },
-    allow_nil: true
-  validates :target_time_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+    }
+  validates :target_time_seconds, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validate :is_valid_race_date
 
   private
