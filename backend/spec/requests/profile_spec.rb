@@ -22,7 +22,6 @@ RSpec.describe "Profile API", type: :request do
       image: "https://example.com/avatar.png"
     )
   end
-  let!(:profile) { FactoryBot.create(:profile, user: user) }
   before do
     OmniAuth.config.test_mode = true
     OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(
@@ -75,7 +74,17 @@ RSpec.describe "Profile API", type: :request do
       tags "Profile"
       produces "application/json"
 
+      response "404", "user profile is not exist" do
+        schema type: :object,
+              properties: {
+                error: { type: :string, example: "profile not found" }
+              },
+              required: [ "error" ]
+        run_test!
+      end
+
       response "200", "user profile is returned" do
+        let!(:profile) { FactoryBot.create(:profile, user: user) }
         schema type: :object,
                properties: {
                 profile: {

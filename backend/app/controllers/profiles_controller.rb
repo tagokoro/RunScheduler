@@ -7,12 +7,12 @@ class ProfilesController < ApplicationController
   def show
     profile = current_user.profile
 
-    render status: :not_found unless profile
+    return render json: { error: "profile not found" }, status: :not_found unless profile
 
     render json: {
       profile: {
         age: profile.age,
-        weight: profile.weight.to_f,
+        weight: profile.weight&.to_f,
         best_5k_seconds: profile.best_5k_seconds,
         best_half_seconds: profile.best_half_seconds,
         best_full_seconds: profile.best_full_seconds,
@@ -24,11 +24,6 @@ class ProfilesController < ApplicationController
   end
 
   private
-
-  def auth_hash
-    request.env["omniauth.auth"]
-  end
-
   def profile_params
     params.require(:profile).permit(
       :age,
