@@ -9,5 +9,6 @@ Rails.application.routes.draw do
   delete "/logout", to: "sessions#destroy"
   get "/me", to: "sessions#show"
 
+  get "/me/profile", to: "profiles#show"
   patch "/me/profile", to: "profiles#update"
 end
