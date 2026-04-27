@@ -25,6 +25,91 @@ paths:
                     example: ok
                 required:
                 - status
+  "/me/profile":
+    patch:
+      summary: update user profile
+      tags:
+      - Profile
+      parameters: []
+      responses:
+        '204':
+          description: user profile is updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profile:
+                  type: object
+                  properties:
+                    age:
+                      type: integer
+                    weight:
+                      type: number
+                      format: float
+                    best_5k_seconds:
+                      type: integer
+                    best_half_seconds:
+                      type: integer
+                    best_full_seconds:
+                      type: integer
+                    target_race_type:
+                      type: string
+                    target_time_seconds:
+                      type: integer
+                    race_date:
+                      type: string
+                      format: date
+              required:
+              - profile
+    get:
+      summary: get user profile
+      tags:
+      - Profile
+      responses:
+        '404':
+          description: user profile is not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: profile not found
+                required:
+                - error
+        '200':
+          description: user profile is returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    type: object
+                    properties:
+                      age:
+                        type: integer
+                      weight:
+                        type: number
+                        format: float
+                      best_5k_seconds:
+                        type: integer
+                      best_half_seconds:
+                        type: integer
+                      best_full_seconds:
+                        type: integer
+                      target_race_type:
+                        type: string
+                      target_time_seconds:
+                        type: integer
+                      race_date:
+                        type: string
+                        format: date
+                required:
+                - profile
   "/me":
     get:
       summary: Returns current user
