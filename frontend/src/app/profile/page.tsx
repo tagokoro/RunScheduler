@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import type { Profile, ProfileResponse } from "./profile-types";
+import type { Profile, ProfileResponse } from "@/types/profile";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
