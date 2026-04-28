@@ -1,7 +1,12 @@
 class ProfilesController < ApplicationController
   def update
     profile = current_user.profile || current_user.build_profile
-    profile.update!(profile_params)
+
+    if profile.update(profile_params)
+      head :no_content
+    else
+      render json: { errors: profile.errors.full_messages }, status: :unprocessable_entity
+    end
   end
 
   def show
@@ -24,6 +29,7 @@ class ProfilesController < ApplicationController
   end
 
   private
+
   def profile_params
     params.require(:profile).permit(
       :age,

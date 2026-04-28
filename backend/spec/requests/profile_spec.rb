@@ -69,6 +69,34 @@ RSpec.describe "Profile API", type: :request do
       response "204", "user profile is updated" do
         run_test!
       end
+
+      response "422", "profile is invalid" do
+        let(:profile_params) do
+          {
+            profile: {
+              age: -1,
+              weight: 60.0,
+              best_5k_seconds: 1200,
+              best_half_seconds: 7200,
+              best_full_seconds: 15120,
+              target_race_type: "half",
+              target_time_seconds: 7200,
+              race_date: "2026-12-01"
+            }
+          }
+        end
+
+        schema type: :object,
+               properties: {
+                 errors: {
+                   type: :array,
+                   items: { type: :string }
+                 }
+               },
+               required: [ "errors" ]
+
+        run_test!
+      end
     end
     get("get user profile") do
       tags "Profile"
