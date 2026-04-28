@@ -1,8 +1,8 @@
 export type TargetRaceType = "5k" | "half" | "full";
 
 export type Profile = {
-  age: number | null;
-  weight: number | null;
+  age: number;
+  weight: number;
   best_5k_seconds: number | null;
   best_half_seconds: number | null;
   best_full_seconds: number | null;
