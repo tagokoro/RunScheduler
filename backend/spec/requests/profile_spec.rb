@@ -3,16 +3,14 @@ require "swagger_helper"
 RSpec.describe "Profile API", type: :request do
   let(:profile_params) do
     {
-      profile: {
-        age: 30,
-        weight: 60.0,
-        best_5k_seconds: 1200,
-        best_half_seconds: 7200,
-        best_full_seconds: 15120,
-        target_race_type: "half",
-        target_time_seconds: 7200,
-        race_date: "2026-12-01"
-      }
+      age: 30,
+      weight: 60.0,
+      best_5k_seconds: 1200,
+      best_half_seconds: 7200,
+      best_full_seconds: 15120,
+      target_race_type: "half",
+      target_time_seconds: 7200,
+      race_date: "2026-12-01"
     }
   end
   let(:user) do
@@ -50,21 +48,16 @@ RSpec.describe "Profile API", type: :request do
                 schema: {
                   type: :object,
                   properties: {
-                    profile: {
-                      type: :object,
-                      properties: {
-                        age: { type: :integer },
-                        weight: { type: :number, format: :float },
-                        best_5k_seconds: { type: :integer },
-                        best_half_seconds: { type: :integer },
-                        best_full_seconds: { type: :integer },
-                        target_race_type: { type: :string },
-                        target_time_seconds: { type: :integer },
-                        race_date: { type: :string, format: :date }
-                      }
-                    }
+                    age: { type: :integer },
+                    weight: { type: :number, format: :float },
+                    best_5k_seconds: { type: :integer },
+                    best_half_seconds: { type: :integer },
+                    best_full_seconds: { type: :integer },
+                    target_race_type: { type: :string },
+                    target_time_seconds: { type: :integer },
+                    race_date: { type: :string, format: :date }
                   },
-                  required: [ "profile" ]
+                  required: [ "age", "weight", "target_race_type", "target_time_seconds", "race_date" ]
                 }
       response "204", "user profile is updated" do
         run_test!
@@ -73,16 +66,14 @@ RSpec.describe "Profile API", type: :request do
       response "422", "profile is invalid" do
         let(:profile_params) do
           {
-            profile: {
-              age: -1,
-              weight: 60.0,
-              best_5k_seconds: 1200,
-              best_half_seconds: 7200,
-              best_full_seconds: 15120,
-              target_race_type: "half",
-              target_time_seconds: 7200,
-              race_date: "2026-12-01"
-            }
+            age: -1,
+            weight: 60.0,
+            best_5k_seconds: 1200,
+            best_half_seconds: 7200,
+            best_full_seconds: 15120,
+            target_race_type: "half",
+            target_time_seconds: 7200,
+            race_date: "2026-12-01"
           }
         end
 
@@ -115,21 +106,16 @@ RSpec.describe "Profile API", type: :request do
         let!(:profile) { FactoryBot.create(:profile, user: user) }
         schema type: :object,
                properties: {
-                profile: {
-                  type: :object,
-                  properties: {
-                    age: { type: :integer },
-                    weight: { type: :number, format: :float },
-                    best_5k_seconds: { type: :integer },
-                    best_half_seconds: { type: :integer },
-                    best_full_seconds: { type: :integer },
-                    target_race_type: { type: :string },
-                    target_time_seconds: { type: :integer },
-                    race_date: { type: :string, format: :date }
-                  }
-                }
+                 age: { type: :integer },
+                 weight: { type: :number, format: :float },
+                 best_5k_seconds: { type: :integer },
+                 best_half_seconds: { type: :integer },
+                 best_full_seconds: { type: :integer },
+                 target_race_type: { type: :string },
+                 target_time_seconds: { type: :integer },
+                 race_date: { type: :string, format: :date }
                },
-               required: [ "profile" ]
+               required: [ "age", "weight", "target_race_type", "target_time_seconds", "race_date" ]
         run_test!
       end
     end

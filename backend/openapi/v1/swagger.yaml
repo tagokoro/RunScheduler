@@ -53,29 +53,30 @@ paths:
             schema:
               type: object
               properties:
-                profile:
-                  type: object
-                  properties:
-                    age:
-                      type: integer
-                    weight:
-                      type: number
-                      format: float
-                    best_5k_seconds:
-                      type: integer
-                    best_half_seconds:
-                      type: integer
-                    best_full_seconds:
-                      type: integer
-                    target_race_type:
-                      type: string
-                    target_time_seconds:
-                      type: integer
-                    race_date:
-                      type: string
-                      format: date
+                age:
+                  type: integer
+                weight:
+                  type: number
+                  format: float
+                best_5k_seconds:
+                  type: integer
+                best_half_seconds:
+                  type: integer
+                best_full_seconds:
+                  type: integer
+                target_race_type:
+                  type: string
+                target_time_seconds:
+                  type: integer
+                race_date:
+                  type: string
+                  format: date
               required:
-              - profile
+              - age
+              - weight
+              - target_race_type
+              - target_time_seconds
+              - race_date
     get:
       summary: get user profile
       tags:
@@ -100,29 +101,30 @@ paths:
               schema:
                 type: object
                 properties:
-                  profile:
-                    type: object
-                    properties:
-                      age:
-                        type: integer
-                      weight:
-                        type: number
-                        format: float
-                      best_5k_seconds:
-                        type: integer
-                      best_half_seconds:
-                        type: integer
-                      best_full_seconds:
-                        type: integer
-                      target_race_type:
-                        type: string
-                      target_time_seconds:
-                        type: integer
-                      race_date:
-                        type: string
-                        format: date
+                  age:
+                    type: integer
+                  weight:
+                    type: number
+                    format: float
+                  best_5k_seconds:
+                    type: integer
+                  best_half_seconds:
+                    type: integer
+                  best_full_seconds:
+                    type: integer
+                  target_race_type:
+                    type: string
+                  target_time_seconds:
+                    type: integer
+                  race_date:
+                    type: string
+                    format: date
                 required:
-                - profile
+                - age
+                - weight
+                - target_race_type
+                - target_time_seconds
+                - race_date
   "/me":
     get:
       summary: Returns current user
