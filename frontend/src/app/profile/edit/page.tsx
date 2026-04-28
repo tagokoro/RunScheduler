@@ -6,7 +6,11 @@ import { useEffect, useState } from "react";
 import { type UseFormRegisterReturn, useForm } from "react-hook-form";
 
 import { useToast } from "@/components/ui/toaster";
-import type { Profile, TargetRaceType, UpdateProfilePayload } from "@/types/profile";
+import type {
+  Profile,
+  TargetRaceType,
+  UpdateProfilePayload,
+} from "@/types/profile";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -176,7 +180,10 @@ export default function Page() {
           />
 
           <div className="space-y-2">
-            <label htmlFor="target_race_type" className="block text-sm font-medium">
+            <label
+              htmlFor="target_race_type"
+              className="block text-sm font-medium"
+            >
               目標レース
             </label>
             <select
