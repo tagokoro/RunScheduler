@@ -119,7 +119,9 @@ export default function Header() {
                     </NavigationMenuTrigger>
                     <NavigationMenuContent className="bg-blue-50">
                       <ul className="w-48 gap-3 text-lg">
-                        <li>設定</li>
+                        <li>
+                          <Link href="/profile">Profile</Link>
+                        </li>
                         <li>
                           <button type="button" onClick={handlLogout}>
                             SignOut
