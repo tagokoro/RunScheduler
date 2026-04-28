@@ -44,7 +44,6 @@ async function fetchProfile(): Promise<{
   }
 }
 
-
 export default async function Page() {
   const { error, profile } = await fetchProfile();
 
