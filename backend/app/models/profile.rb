@@ -3,8 +3,8 @@ class Profile < ApplicationRecord
 
   TARGET_RACE_TYPES = %w[5k half full].freeze
 
-  validates :age, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
-  validates :weight, numericality: { greater_than: 0 }, allow_nil: true
+  validates :age, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :weight, presence: true, numericality: { greater_than: 0 }
   validates :best_5k_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :best_half_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :best_full_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
