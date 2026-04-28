@@ -6,23 +6,12 @@ import { useEffect, useState } from "react";
 import { type UseFormRegisterReturn, useForm } from "react-hook-form";
 
 import { useToast } from "@/components/ui/toaster";
-import type {
-  ProfileResponse,
-  TargetRaceType,
-  UpdateProfilePayload,
-} from "@/types/profile";
+import type { Profile, TargetRaceType, UpdateProfilePayload } from "@/types/profile";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-type ProfileFormValues = {
-  age: string;
-  weight: string;
-  best_5k_seconds: string;
-  best_half_seconds: string;
-  best_full_seconds: string;
+type ProfileFormValues = UpdateProfilePayload & {
   target_race_type: TargetRaceType;
-  target_time_seconds: string;
-  race_date: string;
 };
 
 const defaultValues: ProfileFormValues = {
@@ -35,12 +24,6 @@ const defaultValues: ProfileFormValues = {
   target_time_seconds: "",
   race_date: "",
 };
-
-const buildProfilePayload = (
-  values: ProfileFormValues,
-): UpdateProfilePayload => ({
-  profile: values,
-});
 
 export default function Page() {
   const router = useRouter();
@@ -71,16 +54,16 @@ export default function Page() {
           return;
         }
 
-        const data: ProfileResponse = await response.json();
+        const data: Profile = await response.json();
         reset({
-          age: data.profile.age?.toString() ?? "",
-          weight: data.profile.weight?.toString() ?? "",
-          best_5k_seconds: data.profile.best_5k_seconds?.toString() ?? "",
-          best_half_seconds: data.profile.best_half_seconds?.toString() ?? "",
-          best_full_seconds: data.profile.best_full_seconds?.toString() ?? "",
-          target_race_type: data.profile.target_race_type,
-          target_time_seconds: data.profile.target_time_seconds.toString(),
-          race_date: data.profile.race_date,
+          age: data.age?.toString() ?? "",
+          weight: data.weight?.toString() ?? "",
+          best_5k_seconds: data.best_5k_seconds?.toString() ?? "",
+          best_half_seconds: data.best_half_seconds?.toString() ?? "",
+          best_full_seconds: data.best_full_seconds?.toString() ?? "",
+          target_race_type: data.target_race_type,
+          target_time_seconds: data.target_time_seconds.toString(),
+          race_date: data.race_date,
         });
       } catch {
         showToast("プロフィールの取得に失敗しました。");
@@ -99,13 +82,12 @@ export default function Page() {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify(buildProfilePayload(values)),
+      body: JSON.stringify(values),
     });
 
     if (response.ok) {
       showToast("プロフィールを保存しました。", "success");
       router.push("/profile");
-      router.refresh();
       return;
     }
 
