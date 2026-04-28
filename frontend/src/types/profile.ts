@@ -11,19 +11,13 @@ export type Profile = {
   race_date: string;
 };
 
-export type ProfileResponse = {
-  profile: Profile;
-};
-
 export type UpdateProfilePayload = {
-  profile: {
-    age: string;
-    weight: string;
-    best_5k_seconds: string;
-    best_half_seconds: string;
-    best_full_seconds: string;
-    target_race_type: TargetRaceType;
-    target_time_seconds: string;
-    race_date: string;
-  };
+  age: string;
+  weight: string;
+  best_5k_seconds: string;
+  best_half_seconds: string;
+  best_full_seconds: string;
+  target_race_type: TargetRaceType;
+  target_time_seconds: string;
+  race_date: string;
 };

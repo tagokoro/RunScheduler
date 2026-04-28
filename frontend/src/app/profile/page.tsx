@@ -1,50 +1,52 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
-
-import type { Profile, ProfileResponse } from "@/types/profile";
+import { cookies } from "next/headers";
+import type { Profile } from "@/types/profile";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export default function Page() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+async function fetchProfile(): Promise<{
+  error: string | null;
+  profile: Profile | null;
+}> {
+  try {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore.toString();
+    const response = await fetch(`${apiBaseUrl}/me/profile`, {
+      headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
+      cache: "no-store",
+    });
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await fetch(`${apiBaseUrl}/me/profile`, {
-          credentials: "include",
-        });
+    if (response.status === 404) {
+      return {
+        error: "プロフィールがまだ作成されていません。",
+        profile: null,
+      };
+    }
 
-        if (response.status === 404) {
-          setError("プロフィールがまだ作成されていません。");
-          return;
-        }
+    if (!response.ok) {
+      return {
+        error: "プロフィールの取得に失敗しました。",
+        profile: null,
+      };
+    }
 
-        if (!response.ok) {
-          const data: { error?: string } = await response.json();
-          setError(data.error ?? "failed to fetch profile");
-          return;
-        }
+    const data: Profile = await response.json();
 
-        const data: ProfileResponse = await response.json();
-        setProfile(data.profile);
-      } catch {
-        setError("プロフィールの取得に失敗しました。");
-      } finally {
-        setIsLoading(false);
-      }
+    return {
+      error: null,
+      profile: data,
     };
-
-    void fetchProfile();
-  }, []);
-
-  if (isLoading) {
-    return <main className="px-6 py-10">Loading...</main>;
+  } catch {
+    return {
+      error: "プロフィールの取得に失敗しました。",
+      profile: null,
+    };
   }
+}
+
+
+export default async function Page() {
+  const { error, profile } = await fetchProfile();
 
   if (error) {
     return (
