@@ -15,6 +15,7 @@ class Profile < ApplicationRecord
       message: "is not included in the list"
     }
   validates :target_time_seconds, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :race_date, presence: true
   validate :is_valid_race_date
 
   private
