@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { type UseFormRegisterReturn, useForm } from "react-hook-form";
 
+import { useToast } from "@/components/ui/toaster";
 import type {
   ProfileResponse,
   TargetRaceType,
   UpdateProfilePayload,
-} from "../profile-types";
+} from "@/types/profile";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -22,11 +23,6 @@ type ProfileFormValues = {
   target_race_type: TargetRaceType;
   target_time_seconds: string;
   race_date: string;
-};
-
-type ErrorResponse = {
-  error?: string;
-  errors?: string[];
 };
 
 const defaultValues: ProfileFormValues = {
@@ -48,8 +44,8 @@ const buildProfilePayload = (
 
 export default function Page() {
   const router = useRouter();
-  const [pageError, setPageError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(true);
+  const { showToast } = useToast();
   const {
     register,
     handleSubmit,
@@ -71,8 +67,7 @@ export default function Page() {
         }
 
         if (!response.ok) {
-          const data: ErrorResponse = await response.json();
-          setPageError(data.error ?? "プロフィールの取得に失敗しました。");
+          showToast("プロフィールの取得に失敗しました。");
           return;
         }
 
@@ -88,18 +83,16 @@ export default function Page() {
           race_date: data.profile.race_date,
         });
       } catch {
-        setPageError("プロフィールの取得に失敗しました。");
+        showToast("プロフィールの取得に失敗しました。");
       } finally {
         setIsFetching(false);
       }
     };
 
     void fetchProfile();
-  }, [reset]);
+  }, [reset, showToast]);
 
   const onSubmit = handleSubmit(async (values) => {
-    setPageError(null);
-
     const response = await fetch(`${apiBaseUrl}/me/profile`, {
       method: "PATCH",
       headers: {
@@ -110,37 +103,38 @@ export default function Page() {
     });
 
     if (response.ok) {
+      showToast("プロフィールを保存しました。", "success");
       router.push("/profile");
       router.refresh();
       return;
     }
 
-    const data: ErrorResponse = await response.json();
-    setPageError(
-      data.errors?.join(" / ") ??
-        data.error ??
-        "プロフィールの更新に失敗しました。",
-    );
+    showToast("プロフィールの更新に失敗しました。");
   });
 
   return (
     <main className="mx-auto w-full max-w-2xl px-6 py-10">
-      <div className="mb-8 space-y-2">
+      <div className="mb-6 space-y-2">
         <h1 className="text-2xl font-semibold">プロフィール編集</h1>
         <p className="text-sm text-gray-600">
-          必要な項目だけ入力して保存してください。
+          必要な項目を入力して保存してください。
         </p>
       </div>
 
       {isFetching ? (
-        <p>Loading...</p>
+        <p>プロフィールを読み込んでいます...</p>
       ) : (
         <form onSubmit={onSubmit} className="space-y-6">
           <FormField
             label="年齢"
             type="number"
+            placeholder="30"
             registration={register("age", {
-              min: { value: 0, message: "0以上の数値を入力してください。" },
+              required: "年齢を入力してください。",
+              min: {
+                value: 0,
+                message: "0以上の数値を入力してください。",
+              },
             })}
             error={errors.age?.message}
           />
@@ -149,8 +143,13 @@ export default function Page() {
             label="体重(kg)"
             type="number"
             step="0.1"
+            placeholder="60.0"
             registration={register("weight", {
-              min: { value: 0.1, message: "0より大きい数値を入力してください。" },
+              required: "体重を入力してください。",
+              min: {
+                value: 0.1,
+                message: "0より大きい数値を入力してください。",
+              },
             })}
             error={errors.weight?.message}
           />
@@ -158,8 +157,12 @@ export default function Page() {
           <FormField
             label="5km ベスト(秒)"
             type="number"
+            placeholder="1500"
             registration={register("best_5k_seconds", {
-              min: { value: 0, message: "0以上の数値を入力してください。" },
+              min: {
+                value: 0,
+                message: "0以上の数値を入力してください。",
+              },
             })}
             error={errors.best_5k_seconds?.message}
           />
@@ -167,8 +170,12 @@ export default function Page() {
           <FormField
             label="ハーフ ベスト(秒)"
             type="number"
+            placeholder="7200"
             registration={register("best_half_seconds", {
-              min: { value: 0, message: "0以上の数値を入力してください。" },
+              min: {
+                value: 0,
+                message: "0以上の数値を入力してください。",
+              },
             })}
             error={errors.best_half_seconds?.message}
           />
@@ -176,15 +183,22 @@ export default function Page() {
           <FormField
             label="フル ベスト(秒)"
             type="number"
+            placeholder="14400"
             registration={register("best_full_seconds", {
-              min: { value: 0, message: "0以上の数値を入力してください。" },
+              min: {
+                value: 0,
+                message: "0以上の数値を入力してください。",
+              },
             })}
             error={errors.best_full_seconds?.message}
           />
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">目標レース</label>
+            <label htmlFor="target_race_type" className="block text-sm font-medium">
+              目標レース
+            </label>
             <select
+              id="target_race_type"
               {...register("target_race_type", {
                 required: "目標レースを選択してください。",
               })}
@@ -204,9 +218,13 @@ export default function Page() {
           <FormField
             label="目標タイム(秒)"
             type="number"
+            placeholder="7200"
             registration={register("target_time_seconds", {
               required: "目標タイムを入力してください。",
-              min: { value: 0, message: "0以上の数値を入力してください。" },
+              min: {
+                value: 0,
+                message: "0以上の数値を入力してください。",
+              },
             })}
             error={errors.target_time_seconds?.message}
           />
@@ -219,8 +237,6 @@ export default function Page() {
             })}
             error={errors.race_date?.message}
           />
-
-          {pageError ? <p className="text-sm text-red-600">{pageError}</p> : null}
 
           <div className="flex gap-4">
             <button
@@ -244,27 +260,29 @@ type FormFieldProps = {
   label: string;
   type: "number" | "date";
   error?: string;
+  placeholder?: string;
   step?: string;
-  registration: ReturnType<typeof useForm<ProfileFormValues>>["register"] extends (
-    ...args: never[]
-  ) => infer T
-    ? T
-    : never;
+  registration: UseFormRegisterReturn;
 };
 
 function FormField({
   label,
   type,
   error,
+  placeholder,
   step,
   registration,
 }: FormFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium">{label}</label>
+      <label htmlFor={registration.name} className="block text-sm font-medium">
+        {label}
+      </label>
       <input
+        id={registration.name}
         type={type}
         step={step}
+        placeholder={placeholder}
         {...registration}
         className="w-full rounded border px-3 py-2"
       />
