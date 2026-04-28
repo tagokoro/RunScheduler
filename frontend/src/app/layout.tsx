@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { DM_Sans, Sora } from "next/font/google";
+
 import Header from "@/components/header/header";
+import { ToasterProvider } from "@/components/ui/toaster";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -30,8 +32,10 @@ export default function RootLayout({
       className={cn("h-full antialiased", dmSans.variable, sora.variable)}
     >
       <body className="min-h-screen flex flex-col">
-        <Header />
-        {children}
+        <ToasterProvider>
+          <Header />
+          {children}
+        </ToasterProvider>
       </body>
     </html>
   );
