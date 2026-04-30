@@ -43,7 +43,7 @@ RSpec.describe "TrainingPlans API", type: :request do
     context "when profile exists" do
       let!(:profile) { FactoryBot.create(:profile, user: user) }
 
-      it "returns generated training records" do
+      it "saves and returns generated training records" do
         allow(service).to receive(:generate_training_plan).and_return(
           {
             "training_records" => [
@@ -62,12 +62,20 @@ RSpec.describe "TrainingPlans API", type: :request do
           }
         )
 
-        post "/training_plans", params: params
+        expect do
+          post "/training_plans", params: params
+        end.to change(TrainingRecord, :count).by(1)
 
         expect(response).to have_http_status(:ok)
         parsed_body = JSON.parse(response.body)
         expect(parsed_body["training_records"]).to be_an(Array)
         expect(parsed_body.dig("training_records", 0, "training_type")).to eq("easy_run")
+        expect(parsed_body.dig("training_records", 0, "id")).to be_present
+
+        saved_record = user.training_records.find_by(date: Date.parse("2026-05-01"))
+        expect(saved_record).to be_present
+        expect(saved_record.training_type).to eq("easy_run")
+        expect(saved_record.description).to eq("30分のイージーラン")
       end
     end
 
