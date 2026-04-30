@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   has_one :profile
+  has_many :training_records, dependent: :destroy
 
   class << self
     def find_or_create_from_auth_hash(auth_hash)
