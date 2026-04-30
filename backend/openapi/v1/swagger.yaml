@@ -36,17 +36,6 @@ paths:
           description: user profile is updated
         '422':
           description: profile is invalid
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
-                required:
-                - errors
       requestBody:
         content:
           application/json:
