@@ -172,5 +172,112 @@ paths:
       responses:
         '204':
           description: logged out
+  "/training_plans":
+    post:
+      summary: create training plan
+      tags:
+      - TrainingPlans
+      parameters: []
+      responses:
+        '200':
+          description: training plan is generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  training_records:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        date:
+                          type: string
+                          format: date
+                        training_type:
+                          type: string
+                        description:
+                          type: string
+                        distance_km:
+                          nullable: true
+                          type: number
+                          format: float
+                        duration_minutes:
+                          nullable: true
+                          type: integer
+                        pace:
+                          nullable: true
+                          type: string
+                        completed:
+                          type: boolean
+                        feedback:
+                          nullable: true
+                          type: string
+                        notes:
+                          type: string
+                      required:
+                      - id
+                      - date
+                      - training_type
+                      - description
+                      - distance_km
+                      - duration_minutes
+                      - pace
+                      - completed
+                      - feedback
+                      - notes
+                required:
+                - training_records
+        '404':
+          description: profile is not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: profile not found
+                required:
+                - error
+        '422':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                days:
+                  type: integer
+                  minimum: 1
+                training_days:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                    - monday
+                    - tuesday
+                    - wednesday
+                    - thursday
+                    - friday
+                    - saturday
+                    - sunday
+                request_message:
+                  type: string
+              required:
+              - days
+              - training_days
 components:
   schemas: {}
