@@ -34,7 +34,9 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 export default function Home() {
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
-  const [trainingRecords, setTrainingRecords] = useState<TrainingRecord[] | null>([]);
+  const [trainingRecords, setTrainingRecords] = useState<
+    TrainingRecord[] | null
+  >([]);
   const [selectedWeekdays, setSelectedWeekdays] = useState<Weekday[]>([]);
   const [days, setDays] = useState<number>(0);
   const [requestMessage, setRequestMessage] = useState("");
