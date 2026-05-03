@@ -11,6 +11,6 @@ Rails.application.routes.draw do
 
   get "/me/profile", to: "profiles#show"
   patch "/me/profile", to: "profiles#update"
-
-  post "/training_plans", to: "training_plans#create"
+  get "/training_records", to: "training_records#index"
+  post "/training_records", to: "training_records#create"
 end
