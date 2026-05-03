@@ -228,9 +228,7 @@ export default function Home() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <CardTitle>{record.date}</CardTitle>
-                    <CardDescription>
-                      {record.training_type}
-                    </CardDescription>
+                    <CardDescription>{record.training_type}</CardDescription>
                   </div>
                   <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600">
                     {record.completed ? "完了" : "未完了"}
@@ -242,7 +240,11 @@ export default function Home() {
                 <dl className="space-y-2">
                   <div className="flex justify-between gap-4 border-t border-neutral-100 pt-2">
                     <dt className="text-neutral-500">距離</dt>
-                    <dd>{record.distance_km === null ? "-" : `${record.distance_km} km`}</dd>
+                    <dd>
+                      {record.distance_km === null
+                        ? "-"
+                        : `${record.distance_km} km`}
+                    </dd>
                   </div>
                   <div className="flex justify-between gap-4 border-t border-neutral-100 pt-2">
                     <dt className="text-neutral-500">時間</dt>
