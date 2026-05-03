@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toaster";
-import type { TrainingPlanResponse, Weekday } from "@/types/training-plan";
+import type { TrainingRecordsResponse, Weekday } from "@/types/training-plan";
 import { WEEKDAYS } from "@/types/training-plan";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -67,7 +67,7 @@ export default function Home() {
         return;
       }
 
-      (await response.json()) as TrainingPlanResponse;
+      (await response.json()) as TrainingRecordsResponse;
       setOpen(false);
       showToast("トレーニング予定を生成しました。", "success");
     } catch {
