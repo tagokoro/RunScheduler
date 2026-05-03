@@ -10,13 +10,14 @@ export const WEEKDAYS = [
 
 export type Weekday = (typeof WEEKDAYS)[number]["id"];
 
-export type TrainingPlanRequest = {
+export type CreateTrainingRecordsRequest = {
   days: number;
   training_days: Weekday[];
   request_message?: string;
 };
 
 export type TrainingRecord = {
+  id: string;
   date: string;
   training_type: string;
   description: string;
@@ -25,7 +26,7 @@ export type TrainingRecord = {
   pace: string | null;
   completed: boolean;
   feedback: string | null;
-  notes: string;
+  notes: string | null;
 };
 
 export type TrainingRecordsResponse = {

@@ -172,15 +172,14 @@ paths:
       responses:
         '204':
           description: logged out
-  "/training_plans":
-    post:
-      summary: create training plan
+  "/training_records":
+    get:
+      summary: list training records
       tags:
-      - TrainingPlans
-      parameters: []
+      - TrainingRecords
       responses:
         '200':
-          description: training plan is generated
+          description: training records returned
           content:
             application/json:
               schema:
@@ -193,6 +192,7 @@ paths:
                       properties:
                         id:
                           type: string
+                          format: uuid
                         date:
                           type: string
                           format: date
@@ -200,23 +200,85 @@ paths:
                           type: string
                         description:
                           type: string
-                        distance_km:
                           nullable: true
+                        distance_km:
                           type: number
                           format: float
+                          nullable: true
                         duration_minutes:
-                          nullable: true
                           type: integer
-                        pace:
                           nullable: true
+                        pace:
                           type: string
+                          nullable: true
                         completed:
                           type: boolean
                         feedback:
-                          nullable: true
                           type: string
+                          nullable: true
                         notes:
                           type: string
+                          nullable: true
+                      required:
+                      - id
+                      - date
+                      - training_type
+                      - description
+                      - distance_km
+                      - duration_minutes
+                      - pace
+                      - completed
+                      - feedback
+                      - notes
+                required:
+                - training_records
+    post:
+      summary: create training records
+      tags:
+      - TrainingRecords
+      parameters: []
+      responses:
+        '200':
+          description: training records created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  training_records:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        date:
+                          type: string
+                          format: date
+                        training_type:
+                          type: string
+                        description:
+                          type: string
+                          nullable: true
+                        distance_km:
+                          type: number
+                          format: float
+                          nullable: true
+                        duration_minutes:
+                          type: integer
+                          nullable: true
+                        pace:
+                          type: string
+                          nullable: true
+                        completed:
+                          type: boolean
+                        feedback:
+                          type: string
+                          nullable: true
+                        notes:
+                          type: string
+                          nullable: true
                       required:
                       - id
                       - date
@@ -231,7 +293,7 @@ paths:
                 required:
                 - training_records
         '404':
-          description: profile is not found
+          description: profile not found
           content:
             application/json:
               schema:
@@ -243,7 +305,7 @@ paths:
                 required:
                 - error
         '422':
-          description: invalid request
+          description: openai service error
           content:
             application/json:
               schema:
@@ -251,6 +313,7 @@ paths:
                 properties:
                   error:
                     type: string
+                    example: invalid request
                 required:
                 - error
       requestBody:
@@ -262,6 +325,7 @@ paths:
                 days:
                   type: integer
                   minimum: 1
+                  example: 7
                 training_days:
                   type: array
                   items:
@@ -274,8 +338,14 @@ paths:
                     - friday
                     - saturday
                     - sunday
+                  example:
+                  - monday
+                  - wednesday
+                  - saturday
                 request_message:
                   type: string
+                  nullable: true
+                  example: 無理のない範囲で組んでください
               required:
               - days
               - training_days
