@@ -7,32 +7,14 @@ RSpec.describe "Sessions API", type: :request do
       produces "application/json"
 
       response "200", "current user returned" do
-        let(:user) do
-          User.create!(
-            name: "Test User",
-            email: "test@example.com",
-            image: "https://example.com/avatar.png"
-          )
-        end
+        let(:user) { create(:user) }
 
         before do
-          OmniAuth.config.test_mode = true
-          OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(
-            provider: "google_oauth2",
-            uid: "12345",
-            info: {
-              name: user.name,
-              email: user.email,
-              image: user.image
-            }
-          )
-
-          get "/auth/google_oauth2/callback"
+          sign_in_with_google(user)
         end
         after do
-            OmniAuth.config.test_mode = false
-            OmniAuth.config.mock_auth[:google_oauth2] = nil
-          end
+          reset_google_auth
+        end
         schema type: :object,
               properties: {
                 user: {
@@ -67,32 +49,14 @@ RSpec.describe "Sessions API", type: :request do
       produces "application/json"
 
       response "204", "logged out" do
-        let(:user) do
-          User.create!(
-            name: "Test User",
-            email: "test@example.com",
-            image: "https://example.com/avatar.png"
-          )
-        end
+        let(:user) { create(:user) }
 
         before do
-          OmniAuth.config.test_mode = true
-          OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(
-            provider: "google_oauth2",
-            uid: "12345",
-            info: {
-              name: user.name,
-              email: user.email,
-              image: user.image
-            }
-          )
-
-          get "/auth/google_oauth2/callback"
+          sign_in_with_google(user)
         end
 
         after do
-          OmniAuth.config.test_mode = false
-          OmniAuth.config.mock_auth[:google_oauth2] = nil
+          reset_google_auth
         end
         run_test!
       end
@@ -111,32 +75,14 @@ RSpec.describe "Sessions API", type: :request do
     end
 
     context "when logged in" do
-      let(:user) do
-        User.create!(
-          name: "Test User",
-          email: "test@example.com",
-          image: "https://example.com/avatar.png"
-        )
-      end
+      let(:user) { create(:user) }
 
       before do
-        OmniAuth.config.test_mode = true
-        OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(
-          provider: "google_oauth2",
-          uid: "12345",
-          info: {
-            name: user.name,
-            email: user.email,
-            image: user.image
-          }
-        )
-
-        get "/auth/google_oauth2/callback"
+        sign_in_with_google(user)
       end
 
       after do
-        OmniAuth.config.test_mode = false
-        OmniAuth.config.mock_auth[:google_oauth2] = nil
+        reset_google_auth
       end
       it "returns user" do
         get "/me"
