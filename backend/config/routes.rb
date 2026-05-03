@@ -13,4 +13,5 @@ Rails.application.routes.draw do
   patch "/me/profile", to: "profiles#update"
   get "/training_records", to: "training_records#index"
   post "/training_records", to: "training_records#create"
+  get "/training_records/today", to: "training_records#today"
 end

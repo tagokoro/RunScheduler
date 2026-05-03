@@ -244,4 +244,90 @@ RSpec.describe "TrainingRecords API", type: :request do
       end
     end
   end
+  path "/training_records/today" do
+     get("get today's training record") do
+      tags "TrainingRecords"
+      produces "application/json"
+
+      response "200", "today's training record returned" do
+        let!(:today_record) do
+          TrainingRecord.create!(
+            user: user,
+            date: Date.current,
+            training_type: "easy_run",
+            description: "30分のイージーラン",
+            distance_km: 5.0,
+            duration_minutes: 30,
+            pace: "6:00/km",
+            completed: false,
+            feedback: nil,
+            notes: "余裕を持って走る"
+          )
+        end
+        let!(:other_record) do
+          TrainingRecord.create!(
+            user: user,
+            date: Date.current + 1.day,
+            training_type: "rest",
+            description: "休養日",
+            distance_km: nil,
+            duration_minutes: nil,
+            pace: nil,
+            completed: false,
+            feedback: nil,
+            notes: ""
+          )
+        end
+
+        schema type: :object,
+                properties: {
+                  training_record: {
+                    type: :object,
+                    nullable: true,
+                    properties: {
+                      id: { type: :string, format: :uuid },
+                      date: { type: :string, format: :date },
+                      training_type: { type: :string },
+                      description: { type: :string, nullable: true },
+                      distance_km: { type: :number, format: :float, nullable: true
+                      },
+                      duration_minutes: { type: :integer, nullable: true },
+                      pace: { type: :string, nullable: true },
+                      completed: { type: :boolean },
+                      feedback: { type: :string, nullable: true },
+                      notes: { type: :string, nullable: true }
+                    },
+                    required: %w[
+                      id
+                      date
+                      training_type
+                      description
+                      distance_km
+                      duration_minutes
+                      pace
+                      completed
+                      feedback
+                      notes
+                    ]
+                  }
+                },
+                required: [ "training_record" ]
+          run_test! do |response|
+            body = JSON.parse(response.body)
+            expect(body["training_record"]["date"]).to eq(Date.current.to_s)
+            expect(body["training_record"]["training_type"]).to eq("easy_run")
+          end
+      end
+    end
+  end
+  describe "GET /training_records/today" do
+    context "when there is no training record for today" do
+      it "returns nil for training_record" do
+        get "/training_records/today"
+        expect(response).to have_http_status(:ok)
+        body = JSON.parse(response.body)
+        expect(body["training_record"]).to be_nil
+      end
+    end
+  end
 end

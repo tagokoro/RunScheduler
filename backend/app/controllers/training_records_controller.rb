@@ -27,6 +27,14 @@ class TrainingRecordsController < ApplicationController
     render json: { error: e.record.errors.full_messages.join(", ") }, status: :unprocessable_entity
   end
 
+  def today
+    today_record = current_user.training_records.find_by(date: Date.current)
+
+    render json: {
+      training_record: today_record ? serialize_training_record(today_record) : nil
+    }, status: :ok
+  end
+
   private
 
   def training_record_params
