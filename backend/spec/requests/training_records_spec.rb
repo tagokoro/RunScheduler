@@ -1,35 +1,17 @@
 require "swagger_helper"
 
 RSpec.describe "TrainingRecords API", type: :request do
-  let(:user) do
-    User.create!(
-      name: "Test User",
-      email: "test@example.com",
-      image: "https://example.com/avatar.png"
-    )
-  end
+  let(:user) { create(:user) }
 
   let(:service) { instance_double(ChatgptService) }
 
   before do
-    OmniAuth.config.test_mode = true
-    OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(
-      provider: "google_oauth2",
-      uid: "12345",
-      info: {
-        name: user.name,
-        email: user.email,
-        image: user.image
-      }
-    )
-
-    get "/auth/google_oauth2/callback"
+    sign_in_with_google(user)
     allow(ChatgptService).to receive(:new).and_return(service)
   end
 
   after do
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth[:google_oauth2] = nil
+    reset_google_auth
   end
 
   path "/training_records" do
