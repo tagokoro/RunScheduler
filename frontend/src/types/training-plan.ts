@@ -28,6 +28,6 @@ export type TrainingRecord = {
   notes: string;
 };
 
-export type TrainingPlanResponse = {
+export type TrainingRecordsResponse = {
   training_records: TrainingRecord[];
 };
