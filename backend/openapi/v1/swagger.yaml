@@ -349,5 +349,64 @@ paths:
               required:
               - days
               - training_days
+  "/training_records/today":
+    get:
+      summary: get today's training record
+      tags:
+      - TrainingRecords
+      responses:
+        '200':
+          description: today's training record returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  training_record:
+                    type: object
+                    nullable: true
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      date:
+                        type: string
+                        format: date
+                      training_type:
+                        type: string
+                      description:
+                        type: string
+                        nullable: true
+                      distance_km:
+                        type: number
+                        format: float
+                        nullable: true
+                      duration_minutes:
+                        type: integer
+                        nullable: true
+                      pace:
+                        type: string
+                        nullable: true
+                      completed:
+                        type: boolean
+                      feedback:
+                        type: string
+                        nullable: true
+                      notes:
+                        type: string
+                        nullable: true
+                    required:
+                    - id
+                    - date
+                    - training_type
+                    - description
+                    - distance_km
+                    - duration_minutes
+                    - pace
+                    - completed
+                    - feedback
+                    - notes
+                required:
+                - training_record
 components:
   schemas: {}
