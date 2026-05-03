@@ -34,11 +34,10 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 export default function Home() {
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
-  const [trainingRecords, setTrainingRecords] = useState<TrainingRecord[]>([]);
+  const [trainingRecords, setTrainingRecords] = useState<TrainingRecord[] | null>([]);
   const [selectedWeekdays, setSelectedWeekdays] = useState<Weekday[]>([]);
   const [days, setDays] = useState<number>(0);
   const [requestMessage, setRequestMessage] = useState("");
-  const [hasRecordsError, setHasRecordsError] = useState(false);
   const [isLoadingRecords, setIsLoadingRecords] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,20 +52,19 @@ export default function Home() {
   useEffect(() => {
     const fetchTrainingRecords = async () => {
       try {
-        setHasRecordsError(false);
         const response = await fetch(`${apiBaseUrl}/training_records`, {
           credentials: "include",
         });
 
         if (!response.ok) {
-          setHasRecordsError(true);
+          setTrainingRecords(null);
           return;
         }
 
         const data = (await response.json()) as TrainingRecordsResponse;
         setTrainingRecords(data.training_records);
       } catch {
-        setHasRecordsError(true);
+        setTrainingRecords(null);
       } finally {
         setIsLoadingRecords(false);
       }
@@ -212,7 +210,7 @@ export default function Home() {
         <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center text-sm text-neutral-500">
           トレーニング記録を読み込んでいます...
         </div>
-      ) : hasRecordsError ? (
+      ) : trainingRecords === null ? (
         <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center text-sm text-neutral-500">
           トレーニング記録の取得に失敗しました。
         </div>
