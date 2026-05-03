@@ -1,13 +1,21 @@
-class TrainingPlansController < ApplicationController
+class TrainingRecordsController < ApplicationController
+  def index
+    training_records = current_user.training_records.order(:date)
+
+    render json: {
+      training_records: training_records.map { |training_record| serialize_training_record(training_record) }
+    }, status: :ok
+  end
+
   def create
     profile = current_user.profile
     return render json: { error: "profile not found" }, status: :not_found unless profile
 
-    result = ChatgptService.new.generate_training_plan(
+    result = ChatgptService.new.generate_training_records(
       profile: profile,
-      days: training_plan_params[:days],
-      training_days: training_plan_params[:training_days],
-      request_message: training_plan_params[:request_message]
+      days: training_record_params[:days],
+      training_days: training_record_params[:training_days],
+      request_message: training_record_params[:request_message]
     )
 
     saved_records = save_training_records!(result["training_records"])
@@ -21,7 +29,7 @@ class TrainingPlansController < ApplicationController
 
   private
 
-  def training_plan_params
+  def training_record_params
     params.permit(:days, :request_message, training_days: [])
   end
 
