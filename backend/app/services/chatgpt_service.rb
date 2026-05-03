@@ -22,7 +22,7 @@ class ChatgptService
     raise Error, "openai api key is not configured" if @api_key.blank?
   end
 
-  def generate_training_plan(profile:, days:, training_days:, request_message: nil)
+  def generate_training_records(profile:, days:, training_days:, request_message: nil)
     raise Error, "profile is required" if profile.blank?
     raise Error, "days must be greater than 0" if days.to_i <= 0
     raise Error, "training_days is required" if training_days.blank?
@@ -34,10 +34,10 @@ class ChatgptService
         training_days:,
         request_message:
       ),
-      text_format: training_plan_schema
+      text_format: training_records_schema
     )
 
-    parse_training_plan_response(response)
+    parse_training_records_response(response)
   end
 
   private
@@ -140,10 +140,10 @@ class ChatgptService
     PROMPT
   end
 
-  def training_plan_schema
+  def training_records_schema
     {
       type: "json_schema",
-      name: "training_plan",
+      name: "training_records",
       strict: true,
       schema: {
         type: "object",
@@ -184,7 +184,7 @@ class ChatgptService
     }
   end
 
-  def parse_training_plan_response(response_body)
+  def parse_training_records_response(response_body)
     output_text = extract_output_text(response_body["output"])
     raise Error, "OpenAI response text is empty" if output_text.blank?
 

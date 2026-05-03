@@ -1,0 +1,247 @@
+require "swagger_helper"
+
+RSpec.describe "TrainingRecords API", type: :request do
+  let(:user) do
+    User.create!(
+      name: "Test User",
+      email: "test@example.com",
+      image: "https://example.com/avatar.png"
+    )
+  end
+
+  let(:service) { instance_double(ChatgptService) }
+
+  before do
+    OmniAuth.config.test_mode = true
+    OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(
+      provider: "google_oauth2",
+      uid: "12345",
+      info: {
+        name: user.name,
+        email: user.email,
+        image: user.image
+      }
+    )
+
+    get "/auth/google_oauth2/callback"
+    allow(ChatgptService).to receive(:new).and_return(service)
+  end
+
+  after do
+    OmniAuth.config.test_mode = false
+    OmniAuth.config.mock_auth[:google_oauth2] = nil
+  end
+
+  path "/training_records" do
+    get("list training records") do
+      tags "TrainingRecords"
+      produces "application/json"
+
+      response "200", "training records returned" do
+        let!(:older_record) do
+          TrainingRecord.create!(
+            user: user,
+            date: Date.new(2026, 5, 1),
+            training_type: "easy_run",
+            description: "30分のイージーラン",
+            distance_km: 5.0,
+            duration_minutes: 30,
+            pace: "6:00/km",
+            completed: false,
+            feedback: nil,
+            notes: "余裕を持って走る"
+          )
+        end
+
+        let!(:newer_record) do
+          TrainingRecord.create!(
+            user: user,
+            date: Date.new(2026, 5, 3),
+            training_type: "rest",
+            description: "休養日",
+            distance_km: nil,
+            duration_minutes: nil,
+            pace: nil,
+            completed: false,
+            feedback: nil,
+            notes: ""
+          )
+        end
+
+        schema type: :object,
+               properties: {
+                 training_records: {
+                   type: :array,
+                   items: {
+                     type: :object,
+                     properties: {
+                       id: { type: :string, format: :uuid },
+                       date: { type: :string, format: :date },
+                       training_type: { type: :string },
+                       description: { type: :string, nullable: true },
+                       distance_km: { type: :number, format: :float, nullable: true },
+                       duration_minutes: { type: :integer, nullable: true },
+                       pace: { type: :string, nullable: true },
+                       completed: { type: :boolean },
+                       feedback: { type: :string, nullable: true },
+                       notes: { type: :string, nullable: true }
+                     },
+                     required: %w[
+                       id
+                       date
+                       training_type
+                       description
+                       distance_km
+                       duration_minutes
+                       pace
+                       completed
+                       feedback
+                       notes
+                     ]
+                   }
+                 }
+               },
+               required: ["training_records"]
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body["training_records"].size).to eq(2)
+          expect(body.dig("training_records", 0, "date")).to eq("2026-05-01")
+          expect(body.dig("training_records", 1, "date")).to eq("2026-05-03")
+        end
+      end
+    end
+
+    post("create training records") do
+      tags "TrainingRecords"
+      consumes "application/json"
+      produces "application/json"
+
+      parameter name: :training_record_params,
+                in: :body,
+                schema: {
+                  type: :object,
+                  properties: {
+                    days: { type: :integer, minimum: 1, example: 7 },
+                    training_days: {
+                      type: :array,
+                      items: {
+                        type: :string,
+                        enum: %w[monday tuesday wednesday thursday friday saturday sunday]
+                      },
+                      example: %w[monday wednesday saturday]
+                    },
+                    request_message: {
+                      type: :string,
+                      nullable: true,
+                      example: "無理のない範囲で組んでください"
+                    }
+                  },
+                  required: %w[days training_days]
+                }
+
+      let(:training_record_params) do
+        {
+          days: 7,
+          training_days: %w[monday wednesday saturday],
+          request_message: "無理のない範囲で組んでください"
+        }
+      end
+
+      response "200", "training records created" do
+        let!(:profile) { FactoryBot.create(:profile, user: user) }
+
+        before do
+          allow(service).to receive(:generate_training_records).and_return(
+            {
+              "training_records" => [
+                {
+                  "date" => "2026-05-01",
+                  "training_type" => "easy_run",
+                  "description" => "30分のイージーラン",
+                  "distance_km" => 5.0,
+                  "duration_minutes" => 30,
+                  "pace" => "6:00/km",
+                  "completed" => false,
+                  "feedback" => nil,
+                  "notes" => "余裕を持って走る"
+                }
+              ]
+            }
+          )
+        end
+
+        schema type: :object,
+               properties: {
+                 training_records: {
+                   type: :array,
+                   items: {
+                     type: :object,
+                     properties: {
+                       id: { type: :string, format: :uuid },
+                       date: { type: :string, format: :date },
+                       training_type: { type: :string },
+                       description: { type: :string, nullable: true },
+                       distance_km: { type: :number, format: :float, nullable: true },
+                       duration_minutes: { type: :integer, nullable: true },
+                       pace: { type: :string, nullable: true },
+                       completed: { type: :boolean },
+                       feedback: { type: :string, nullable: true },
+                       notes: { type: :string, nullable: true }
+                     },
+                     required: %w[
+                       id
+                       date
+                       training_type
+                       description
+                       distance_km
+                       duration_minutes
+                       pace
+                       completed
+                       feedback
+                       notes
+                     ]
+                   }
+                 }
+               },
+               required: ["training_records"]
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body["training_records"]).to be_an(Array)
+          expect(body.dig("training_records", 0, "training_type")).to eq("easy_run")
+          expect(body.dig("training_records", 0, "id")).to be_present
+        end
+      end
+
+      response "404", "profile not found" do
+        schema type: :object,
+               properties: {
+                 error: { type: :string, example: "profile not found" }
+               },
+               required: ["error"]
+
+        run_test! do |response|
+          expect(JSON.parse(response.body)).to eq({ "error" => "profile not found" })
+        end
+      end
+
+      response "422", "openai service error" do
+        let!(:profile) { FactoryBot.create(:profile, user: user) }
+
+        before do
+          allow(service).to receive(:generate_training_records)
+            .and_raise(ChatgptService::Error.new("invalid request", status: 422))
+        end
+
+        schema type: :object,
+               properties: {
+                 error: { type: :string, example: "invalid request" }
+               },
+               required: ["error"]
+
+        run_test!
+      end
+    end
+  end
+end
