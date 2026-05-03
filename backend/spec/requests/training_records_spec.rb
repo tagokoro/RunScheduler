@@ -101,7 +101,7 @@ RSpec.describe "TrainingRecords API", type: :request do
                    }
                  }
                },
-               required: ["training_records"]
+               required: [ "training_records" ]
 
         run_test! do |response|
           body = JSON.parse(response.body)
@@ -204,7 +204,7 @@ RSpec.describe "TrainingRecords API", type: :request do
                    }
                  }
                },
-               required: ["training_records"]
+               required: [ "training_records" ]
 
         run_test! do |response|
           body = JSON.parse(response.body)
@@ -219,7 +219,7 @@ RSpec.describe "TrainingRecords API", type: :request do
                properties: {
                  error: { type: :string, example: "profile not found" }
                },
-               required: ["error"]
+               required: [ "error" ]
 
         run_test! do |response|
           expect(JSON.parse(response.body)).to eq({ "error" => "profile not found" })
@@ -238,7 +238,7 @@ RSpec.describe "TrainingRecords API", type: :request do
                properties: {
                  error: { type: :string, example: "invalid request" }
                },
-               required: ["error"]
+               required: [ "error" ]
 
         run_test!
       end
