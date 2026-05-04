@@ -21,15 +21,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toaster";
+import {
+  createTrainingRecords,
+  listTrainingRecords,
+} from "@/lib/api/training-records";
 import type {
   CreateTrainingRecordsRequest,
   TrainingRecord,
-  TrainingRecordsResponse,
   Weekday,
 } from "@/types/training-records";
 import { WEEKDAYS } from "@/types/training-records";
-
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function Home() {
   const { showToast } = useToast();
@@ -54,17 +55,8 @@ export default function Home() {
   useEffect(() => {
     const fetchTrainingRecords = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/training_records`, {
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          setTrainingRecords(null);
-          return;
-        }
-
-        const data = (await response.json()) as TrainingRecordsResponse;
-        setTrainingRecords(data.training_records);
+        const trainingRecords = await listTrainingRecords();
+        setTrainingRecords(trainingRecords);
       } catch {
         setTrainingRecords(null);
       } finally {
@@ -95,22 +87,14 @@ export default function Home() {
         request_message: requestMessage.trim() || undefined,
       };
 
-      const response = await fetch(`${apiBaseUrl}/training_records`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
+      const result = await createTrainingRecords(payload);
 
-      if (!response.ok) {
-        showToast("トレーニング予定の生成に失敗しました。");
+      if (result.error || !result.trainingRecords) {
+        showToast(result.error ?? "トレーニング予定の生成に失敗しました。");
         return;
       }
 
-      const data = (await response.json()) as TrainingRecordsResponse;
-      setTrainingRecords(data.training_records);
+      setTrainingRecords(result.trainingRecords);
       setOpen(false);
       showToast("トレーニング予定を生成しました。", "success");
     } catch {

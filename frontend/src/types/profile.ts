@@ -21,7 +21,3 @@ export type UpdateProfilePayload = {
   target_time_seconds: string;
   race_date: string;
 };
-
-export type UpdateProfileResponse = {
-  error: string | null;
-};

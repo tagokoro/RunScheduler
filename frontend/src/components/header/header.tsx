@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import {
+  getCurrentUser,
+  getGoogleLoginUrl,
+  logout,
+} from "@/lib/api/session";
+import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuList,
@@ -12,47 +17,26 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-const apiUrl = "http://localhost:3000";
-
-type CurrentUser = {
-  id: number;
-  name: string | null;
-  email: string | null;
-  image: string | null;
-};
-
-type MeResponse = {
-  user: CurrentUser;
-};
+import type { CurrentUser } from "@/types/session";
 
 export default function Header() {
   const [user, setUser] = useState<CurrentUser | null>(null);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
-      const response = await fetch(`${apiUrl}/me`, {
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        return;
-      }
-
-      const data: MeResponse = await response.json();
-      setUser(data.user);
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
     };
 
     void fetchCurrentUser();
   }, []);
 
-  const handlLogout = async () => {
-    const response = await fetch(`${apiUrl}/logout`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+  const handleLogout = async () => {
+    const isLoggedOut = await logout();
 
-    if (response.ok) setUser(null);
+    if (isLoggedOut) {
+      setUser(null);
+    }
   };
 
   return (
@@ -123,7 +107,7 @@ export default function Header() {
                           <Link href="/profile">Profile</Link>
                         </li>
                         <li>
-                          <button type="button" onClick={handlLogout}>
+                          <button type="button" onClick={handleLogout}>
                             SignOut
                           </button>
                         </li>
@@ -132,7 +116,7 @@ export default function Header() {
                   </>
                 ) : (
                   <button className="hover:bg-white/15">
-                    <Link href={`${apiUrl}/auth/google_oauth2`}>Login</Link>
+                    <Link href={getGoogleLoginUrl()}>Login</Link>
                   </button>
                 )}
               </NavigationMenuItem>

@@ -28,7 +28,3 @@ export type TrainingRecord = {
   feedback: string | null;
   notes: string | null;
 };
-
-export type TrainingRecordsResponse = {
-  training_records: TrainingRecord[];
-};

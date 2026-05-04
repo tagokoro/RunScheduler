@@ -1,9 +1,9 @@
-import type {
-  Profile,
-  UpdateProfilePayload,
-  UpdateProfileResponse,
-} from "@/types/profile";
+import type { Profile, UpdateProfilePayload } from "@/types/profile";
 import { apiFetch } from "./client";
+
+type UpdateProfileResult = {
+  error: string | null;
+};
 
 export async function getProfile(
   cookieHeader?: string,
@@ -22,7 +22,7 @@ export async function getProfile(
 
 export async function updateProfile(
   payload: UpdateProfilePayload,
-): Promise<UpdateProfileResponse> {
+): Promise<UpdateProfileResult> {
   const response = await apiFetch("/me/profile", {
     method: "PATCH",
     headers: {
