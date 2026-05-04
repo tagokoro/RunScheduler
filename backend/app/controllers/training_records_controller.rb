@@ -35,6 +35,16 @@ class TrainingRecordsController < ApplicationController
     head :no_content
   end
 
+  def update
+    training_record = current_user.training_records.find_by(id: params[:id])
+    return render json: { error: "training record not found" }, status: :not_found unless training_record
+
+    if training_record.update(training_record_params)
+      render json: { training_record: serialize_training_record(training_record) }, status: :ok
+    else
+      render json: { error: training_record.errors.full_messages.join(", ") }, status: :unprocessable_entity
+    end
+  end
   def today
     today_record = current_user.training_records.find_by(date: Date.current)
 
@@ -46,7 +56,7 @@ class TrainingRecordsController < ApplicationController
   private
 
   def training_record_params
-    params.permit(:days, :request_message, training_days: [])
+    params.permit(:completed, :days, :request_message, training_days: [])
   end
 
   def save_training_records!(training_records)
