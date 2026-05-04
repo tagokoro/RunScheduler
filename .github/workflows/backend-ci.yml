@@ -80,3 +80,11 @@ jobs:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
         run: bin/rails db:test:prepare && bundle exec rspec
+
+      - name: Verify Swagger is up to date
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432
+        run: |
+          bin/rails rswag:specs:swaggerize
+          git diff --exit-code openapi/v1/swagger.yaml
