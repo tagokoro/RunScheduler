@@ -349,6 +349,14 @@ paths:
               required:
               - days
               - training_days
+  "/traininf_records/{id}":
+    delete:
+      summary: delete a training record
+      tags:
+      - TrainingRecords
+      responses:
+        '204':
+          description: training record deleted
   "/training_records/today":
     get:
       summary: get today's training record
