@@ -4,11 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import {
-  getCurrentUser,
-  getGoogleLoginUrl,
-  logout,
-} from "@/lib/api/session";
+import { getCurrentUser, getGoogleLoginUrl, logout } from "@/lib/api/session";
 import {
   NavigationMenu,
   NavigationMenuItem,
