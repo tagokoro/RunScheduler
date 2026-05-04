@@ -349,7 +349,13 @@ paths:
               required:
               - days
               - training_days
-  "/traininf_records/{id}":
+  "/training_records/{id}":
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
     delete:
       summary: delete a training record
       tags:
@@ -357,6 +363,13 @@ paths:
       responses:
         '204':
           description: training record deleted
+    patch:
+      summary: update a training record
+      tags:
+      - TrainingRecords
+      responses:
+        '200':
+          description: training record updated
   "/training_records/today":
     get:
       summary: get today's training record
