@@ -27,6 +27,14 @@ class TrainingRecordsController < ApplicationController
     render json: { error: e.record.errors.full_messages.join(", ") }, status: :unprocessable_entity
   end
 
+  def destroy
+    training_record = current_user.training_records.find_by(id: params[:id])
+    return render json: { error: "training record not found" }, status: :not_found unless training_record
+
+    training_record.destroy
+    head :no_content
+  end
+
   def today
     today_record = current_user.training_records.find_by(date: Date.current)
 
