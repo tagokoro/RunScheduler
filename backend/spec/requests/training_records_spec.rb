@@ -226,6 +226,60 @@ RSpec.describe "TrainingRecords API", type: :request do
       end
     end
   end
+  path "/training_records/{id}" do
+    parameter name: :id, in: :path, type: :string
+    delete("delete a training record") do
+      tags "TrainingRecords"
+      let!(:training_record) do
+        TrainingRecord.create!(
+          user: user,
+          date: Date.new(2026, 5, 1),
+          training_type: "easy_run",
+          description: "30分のイージーラン",
+          distance_km: 5.0,
+          duration_minutes: 30,
+          pace: "6:00/km",
+          completed: false,
+          feedback: nil,
+          notes: "余裕を持って走る"
+        )
+      end
+      let(:id) { training_record.id }
+      response "204", "training record deleted" do
+        run_test! do
+          expect(response).to have_http_status(:no_content)
+          expect(TrainingRecord.find_by(id: training_record.id)).to be_nil
+        end
+      end
+    end
+
+    patch("update a training record") do
+      tags "TrainingRecords"
+      let!(:training_record) do
+        TrainingRecord.create!(
+          user: user,
+          date: Date.new(2026, 5, 1),
+          training_type: "easy_run",
+          description: "30分のイージーラン",
+          distance_km: 5.0,
+          duration_minutes: 30,
+          pace: "6:00/km",
+          completed: false,
+          feedback: nil,
+          notes: "余裕を持って走る"
+        )
+      end
+      let(:id) { training_record.id }
+      response "200", "training record updated" do
+        run_test! do
+          expect(response).to have_http_status(:ok)
+          body = JSON.parse(response.body)
+          expect(body["training_record"]["id"]).to eq(training_record.id)
+          expect(body["training_record"]["training_type"]).to eq("easy_run")
+        end
+      end
+    end
+  end
   path "/training_records/today" do
      get("get today's training record") do
       tags "TrainingRecords"
@@ -300,6 +354,52 @@ RSpec.describe "TrainingRecords API", type: :request do
             expect(body["training_record"]["training_type"]).to eq("easy_run")
           end
       end
+    end
+  end
+  describe "DELETE /training_records/{id}" do
+    let!(:training_record) do
+      TrainingRecord.create!(
+        user: user,
+        date: Date.new(2026, 5, 1),
+        training_type: "easy_run",
+        description: "30分のイージーラン",
+        distance_km: 5.0,
+        duration_minutes: 30,
+        pace: "6:00/km",
+        completed: false,
+        feedback: nil,
+        notes: "余裕を持って走る"
+      )
+    end
+    it "deletes the specified training record" do
+      delete "/training_records/#{training_record.id}"
+      expect(response).to have_http_status(:no_content)
+      expect(TrainingRecord.find_by(id: training_record.id)).to be_nil
+    end
+  end
+  describe "PATCH /training_records/{id}" do
+    let!(:training_record) do
+      TrainingRecord.create!(
+        user: user,
+        date: Date.new(2026, 5, 1),
+        training_type: "easy_run",
+        description: "30分のイージーラン",
+        distance_km: 5.0,
+        duration_minutes: 30,
+        pace: "6:00/km",
+        completed: false,
+        feedback: nil,
+        notes: "余裕を持って走る"
+      )
+    end
+    it "updates the specified training record" do
+      patch "/training_records/#{training_record.id}", params: {
+        completed: true
+      }
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      expect(body["training_record"]["id"]).to eq(training_record.id)
+      expect(body["training_record"]["completed"]).to eq(true)
     end
   end
   describe "GET /training_records/today" do
