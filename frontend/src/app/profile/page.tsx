@@ -1,40 +1,26 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import type { Profile } from "@/types/profile";
-
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+import { getProfile } from "@/lib/api/profile";
 
 async function fetchProfile(): Promise<{
   error: string | null;
-  profile: Profile | null;
+  profile: Awaited<ReturnType<typeof getProfile>>;
 }> {
   try {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
-    const response = await fetch(`${apiBaseUrl}/me/profile`, {
-      headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
-      cache: "no-store",
-    });
+    const profile = await getProfile(cookieHeader);
 
-    if (response.status === 404) {
+    if (!profile) {
       return {
         error: "プロフィールがまだ作成されていません。",
         profile: null,
       };
     }
 
-    if (!response.ok) {
-      return {
-        error: "プロフィールの取得に失敗しました。",
-        profile: null,
-      };
-    }
-
-    const data: Profile = await response.json();
-
     return {
       error: null,
-      profile: data,
+      profile,
     };
   } catch {
     return {
