@@ -15,10 +15,7 @@ type TodayTrainingCardProps = {
   footer?: ReactNode;
 };
 
-export function TodayTrainingCard({
-  record,
-  footer,
-}: TodayTrainingCardProps) {
+export function TodayTrainingCard({ record, footer }: TodayTrainingCardProps) {
   return (
     <Card className="border-orange-200 bg-orange-50">
       <CardHeader>
@@ -27,9 +24,7 @@ export function TodayTrainingCard({
             <CardTitle>{record.training_type}</CardTitle>
             <CardDescription>{record.date}</CardDescription>
           </div>
-          <Badge variant="accent">
-            {record.completed ? "完了" : "未完了"}
-          </Badge>
+          <Badge variant="accent">{record.completed ? "完了" : "未完了"}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm text-neutral-700">
