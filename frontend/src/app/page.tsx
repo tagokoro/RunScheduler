@@ -2,14 +2,9 @@
 
 import { useEffect, useState } from "react";
 
+import { TrainingRecordCard } from "@/components/training-record-card";
+import { TodayTrainingCard } from "@/components/today-training-card";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Dialog,
   DialogClose,
@@ -24,6 +19,7 @@ import { useToast } from "@/components/ui/toaster";
 import {
   createTrainingRecords,
   listTrainingRecords,
+  updateTrainingRecord,
 } from "@/lib/api/training-records";
 import type {
   CreateTrainingRecordsRequest,
@@ -31,6 +27,15 @@ import type {
   Weekday,
 } from "@/types/training-records";
 import { WEEKDAYS } from "@/types/training-records";
+
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
 
 export default function Home() {
   const { showToast } = useToast();
@@ -43,6 +48,10 @@ export default function Home() {
   const [requestMessage, setRequestMessage] = useState("");
   const [isLoadingRecords, setIsLoadingRecords] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdatingToday, setIsUpdatingToday] = useState(false);
+  const todayTrainingRecord =
+    trainingRecords?.find((record) => record.date === getTodayDateString()) ??
+    null;
 
   const toggleWeekday = (weekday: Weekday) => {
     setSelectedWeekdays((current) =>
@@ -104,8 +113,75 @@ export default function Home() {
     }
   };
 
+  const handleCompleteToday = async () => {
+    if (!todayTrainingRecord || todayTrainingRecord.completed) {
+      return;
+    }
+
+    setIsUpdatingToday(true);
+
+    try {
+      const result = await updateTrainingRecord(todayTrainingRecord.id, {
+        completed: true,
+      });
+
+      if (result.error || !result.trainingRecord) {
+        showToast(result.error ?? "トレーニング記録の更新に失敗しました。");
+        return;
+      }
+
+      const updatedTrainingRecord = result.trainingRecord;
+      setTrainingRecords((current) =>
+        current?.map((record) =>
+          record.id === updatedTrainingRecord.id ? updatedTrainingRecord : record,
+        ) ?? null,
+      );
+      showToast("今日もお疲れ様でした。", "success");
+    } catch {
+      showToast("トレーニング記録の更新に失敗しました。");
+    } finally {
+      setIsUpdatingToday(false);
+    }
+  };
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 p-6">
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-xl font-semibold text-neutral-900">
+            今日のトレーニング
+          </h2>
+          <p className="text-sm text-neutral-500">
+            今日取り組むメニューをすぐ確認できます。
+          </p>
+        </div>
+
+        {isLoadingRecords ? null : trainingRecords === null ? (
+          <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
+            今日のトレーニングを取得できませんでした。
+          </div>
+        ) : todayTrainingRecord ? (
+          <TodayTrainingCard
+            record={todayTrainingRecord}
+            footer={
+              <Button
+                onClick={handleCompleteToday}
+                disabled={isUpdatingToday || todayTrainingRecord.completed}
+              >
+                {todayTrainingRecord.completed
+                  ? "完了済み"
+                  : isUpdatingToday
+                    ? "更新中..."
+                    : "完了"}
+              </Button>
+            }
+          />
+        ) : (
+          <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
+            今日のトレーニングはまだ登録されていません。
+          </div>
+        )}
+      </section>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900">
@@ -207,48 +283,7 @@ export default function Home() {
       ) : (
         <div className="flex flex-col gap-4">
           {trainingRecords.map((record) => (
-            <Card key={record.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <CardTitle>{record.date}</CardTitle>
-                    <CardDescription>{record.training_type}</CardDescription>
-                  </div>
-                  <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600">
-                    {record.completed ? "完了" : "未完了"}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-neutral-700">
-                <p>{record.description}</p>
-                <dl className="space-y-2">
-                  <div className="flex justify-between gap-4 border-t border-neutral-100 pt-2">
-                    <dt className="text-neutral-500">距離</dt>
-                    <dd>
-                      {record.distance_km === null
-                        ? "-"
-                        : `${record.distance_km} km`}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-4 border-t border-neutral-100 pt-2">
-                    <dt className="text-neutral-500">時間</dt>
-                    <dd>
-                      {record.duration_minutes === null
-                        ? "-"
-                        : `${record.duration_minutes} 分`}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-4 border-t border-neutral-100 pt-2">
-                    <dt className="text-neutral-500">ペース</dt>
-                    <dd>{record.pace ?? "-"}</dd>
-                  </div>
-                  <div className="flex justify-between gap-4 border-t border-neutral-100 pt-2">
-                    <dt className="text-neutral-500">メモ</dt>
-                    <dd className="text-right">{record.notes ?? "-"}</dd>
-                  </div>
-                </dl>
-              </CardContent>
-            </Card>
+            <TrainingRecordCard key={record.id} record={record} />
           ))}
         </div>
       )}
