@@ -13,8 +13,12 @@ export type CreateTrainingRecordsResult = {
   trainingRecords: TrainingRecord[] | null;
 };
 
-export async function listTrainingRecords(): Promise<TrainingRecord[] | null> {
+export async function listTrainingRecords(
+  cookieHeader?: string,
+): Promise<TrainingRecord[] | null> {
   const response = await apiFetch("/training_records", {
+    cache: "no-store",
+    cookieHeader,
     credentials: "include",
   });
 
