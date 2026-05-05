@@ -27,9 +27,7 @@ export function TrainingRecordCard({
             <CardTitle>{record.date}</CardTitle>
             <CardDescription>{record.training_type}</CardDescription>
           </div>
-          <Badge>
-            {record.completed ? "完了" : "未完了"}
-          </Badge>
+          <Badge>{record.completed ? "完了" : "未完了"}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm text-neutral-700">

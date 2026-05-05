@@ -131,10 +131,13 @@ export default function Home() {
       }
 
       const updatedTrainingRecord = result.trainingRecord;
-      setTrainingRecords((current) =>
-        current?.map((record) =>
-          record.id === updatedTrainingRecord.id ? updatedTrainingRecord : record,
-        ) ?? null,
+      setTrainingRecords(
+        (current) =>
+          current?.map((record) =>
+            record.id === updatedTrainingRecord.id
+              ? updatedTrainingRecord
+              : record,
+          ) ?? null,
       );
       showToast("今日もお疲れ様でした。", "success");
     } catch {
