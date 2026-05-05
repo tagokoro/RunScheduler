@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 
 import { TrainingRecordCard } from "@/components/training-record-card";
-import { TodayTrainingCard } from "@/components/today-training-card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -164,8 +163,9 @@ export default function Home() {
             今日のトレーニングを取得できませんでした。
           </div>
         ) : todayTrainingRecord ? (
-          <TodayTrainingCard
+          <TrainingRecordCard
             record={todayTrainingRecord}
+            emphasis="highlighted"
             footer={
               <Button
                 onClick={handleCompleteToday}
