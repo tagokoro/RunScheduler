@@ -356,6 +356,80 @@ RSpec.describe "TrainingRecords API", type: :request do
       end
     end
   end
+  path "/training_records/stats" do
+    get("get training record stats") do
+      tags "TrainingRecords"
+      produces "application/json"
+
+      parameter name: :group_by,in: :query, type: :string, enum: %w[day week month], example: "week"
+      response "200", "training record stats returned" do
+        let(:group_by) { "day" }
+        let!(:record1) do
+          TrainingRecord.create!(
+            user: user,
+            date: Date.new(2026, 5, 1),
+            training_type: "easy_run",
+            description: "30分のイージーラン",
+            distance_km: 5.0,
+            duration_minutes: 30,
+            pace: "6:00/km",
+            completed: true,
+            feedback: nil,
+            notes: "余裕を持って走る"
+          )
+        end
+        let!(:record2) do
+          TrainingRecord.create!(
+            user: user,
+            date: Date.new(2026, 5, 2),
+            training_type: "tempo",
+            description: "40分のテンポ走",
+            distance_km: 8.0,
+            duration_minutes: 40,
+            pace: "5:00/km",
+            completed: true,
+            feedback: nil,
+            notes: "少しきついが頑張る"
+          )
+        end
+        schema type: :object,
+                properties: {
+                  group_by: { type: :string, enum: %w[day week month] },
+                  stats: {
+                    type: :array,
+                    items: {
+                      type: :object,
+                      properties: {
+                        period: { type: :string },
+                        total_distance_km: { type: :number, format: :float },
+                        total_duration_minutes: { type: :integer },
+                        training_count: { type: :integer }
+                      },
+                      required: %w[period total_distance_km total_duration_minutes training_count]
+                    }
+                  }
+                },
+                required: [ "group_by", "stats" ]
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body["stats"]).to eq([
+            {
+              "period" => "2026-05-01",
+              "total_distance_km" => 5.0,
+              "total_duration_minutes" => 30,
+              "training_count" => 1
+            },
+            {
+              "period" => "2026-05-02",
+              "total_distance_km" => 8.0,
+              "total_duration_minutes" => 40,
+              "training_count" => 1
+            }
+          ])
+        end
+      end
+    end
+  end
   describe "DELETE /training_records/{id}" do
     let!(:training_record) do
       TrainingRecord.create!(
