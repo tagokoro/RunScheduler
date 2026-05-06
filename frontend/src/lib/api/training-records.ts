@@ -17,14 +17,16 @@ export type CreateTrainingRecordsResult = {
   error: string | null;
   trainingRecords: TrainingRecord[] | null;
 };
-
 export type UpdateTrainingRecordResult = {
   error: string | null;
   trainingRecord: TrainingRecord | null;
 };
-
-export async function listTrainingRecords(): Promise<TrainingRecord[] | null> {
+export async function listTrainingRecords(
+  cookieHeader?: string,
+): Promise<TrainingRecord[] | null> {
   const response = await apiFetch("/training_records", {
+    cache: "no-store",
+    cookieHeader,
     credentials: "include",
   });
 
