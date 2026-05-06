@@ -16,4 +16,5 @@ Rails.application.routes.draw do
   get "/training_records/today", to: "training_records#today"
   delete "/training_records/:id", to: "training_records#destroy"
   patch "/training_records/:id", to: "training_records#update"
+  get "/training_records/stats", to: "training_records#stats"
 end

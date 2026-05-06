@@ -52,6 +52,18 @@ class TrainingRecordsController < ApplicationController
       training_record: today_record ? serialize_training_record(today_record) : nil
     }, status: :ok
   end
+  def stats
+    result = TrainingRecordStatsService.call(
+      user: current_user,
+      group_by: params[:group_by]
+    )
+
+    if result[:error]
+      render json: { error: result[:error] }, status: :bad_request
+    else
+      render json: result, status: :ok
+    end
+  end
 
   private
 
