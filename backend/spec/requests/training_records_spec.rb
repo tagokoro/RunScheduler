@@ -361,7 +361,7 @@ RSpec.describe "TrainingRecords API", type: :request do
       tags "TrainingRecords"
       produces "application/json"
 
-      parameter name: :group_by,in: :query, type: :string, enum: %w[day week month], example: "week"
+      parameter name: :group_by, in: :query, type: :string, enum: %w[day week month], example: "week"
       response "200", "training record stats returned" do
         let(:group_by) { "day" }
         let!(:record1) do
