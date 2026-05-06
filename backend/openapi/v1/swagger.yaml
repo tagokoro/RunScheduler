@@ -429,5 +429,57 @@ paths:
                     - notes
                 required:
                 - training_record
+  "/training_records/stats":
+    get:
+      summary: get training record stats
+      tags:
+      - TrainingRecords
+      parameters:
+      - name: group_by
+        in: query
+        enum:
+        - day
+        - week
+        - month
+        example: week
+        schema:
+          type: string
+        description: ":\n * `day` \n * `week` \n * `month` \n "
+      responses:
+        '200':
+          description: training record stats returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group_by:
+                    type: string
+                    enum:
+                    - day
+                    - week
+                    - month
+                  stats:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        period:
+                          type: string
+                        total_distance_km:
+                          type: number
+                          format: float
+                        total_duration_minutes:
+                          type: integer
+                        training_count:
+                          type: integer
+                      required:
+                      - period
+                      - total_distance_km
+                      - total_duration_minutes
+                      - training_count
+                required:
+                - group_by
+                - stats
 components:
   schemas: {}
