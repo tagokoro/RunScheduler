@@ -16,6 +16,10 @@ export type CreateTrainingRecordsRequest = {
   request_message?: string;
 };
 
+export type UpdateTrainingRecordRequest = {
+  completed?: boolean;
+};
+
 export type TrainingRecord = {
   id: string;
   date: string;
