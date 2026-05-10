@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { ScheduleCalendar } from "@/components/schedule/schedule-calendar";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { buildGoogleCalendarUrl } from "@/lib/google-calendar";
+import { cn } from "@/lib/utils";
 import type { TrainingRecord } from "@/types/training-records";
 
 type ScheduleClientProps = {
@@ -112,6 +115,19 @@ export function ScheduleClient({
                     <dd>{selectedRecord.notes ?? "-"}</dd>
                   </div>
                 </dl>
+                <div className="flex justify-end border-t border-orange-200 pt-3">
+                  <a
+                    href={buildGoogleCalendarUrl(selectedRecord)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "border-orange-200 bg-white text-orange-700 hover:bg-orange-100",
+                    )}
+                  >
+                    Google カレンダーに追加
+                  </a>
+                </div>
               </>
             ) : (
               <p>この日のトレーニング予定はありません。</p>
