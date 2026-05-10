@@ -2,6 +2,8 @@ import { apiFetch } from "./client";
 import type {
   CreateTrainingRecordsRequest,
   TrainingRecord,
+  TrainingRecordStatsGroupBy,
+  TrainingRecordStatsResponse,
   UpdateTrainingRecordRequest,
 } from "@/types/training-records";
 
@@ -20,6 +22,11 @@ export type CreateTrainingRecordsResult = {
 export type UpdateTrainingRecordResult = {
   error: string | null;
   trainingRecord: TrainingRecord | null;
+};
+
+export type ListTrainingRecordStatsResult = {
+  error: string | null;
+  statsResponse: TrainingRecordStatsResponse | null;
 };
 export async function listTrainingRecords(
   cookieHeader?: string,
@@ -62,6 +69,34 @@ export async function createTrainingRecords(
   return {
     error: null,
     trainingRecords: data.training_records,
+  };
+}
+
+export async function listTrainingRecordStats(
+  groupBy: TrainingRecordStatsGroupBy,
+  cookieHeader?: string,
+): Promise<ListTrainingRecordStatsResult> {
+  const response = await apiFetch(
+    `/training_records/stats?group_by=${groupBy}`,
+    {
+      cache: "no-store",
+      cookieHeader,
+      credentials: "include",
+    },
+  );
+
+  if (!response.ok) {
+    return {
+      error: "統計情報の取得に失敗しました。",
+      statsResponse: null,
+    };
+  }
+
+  const data: TrainingRecordStatsResponse = await response.json();
+
+  return {
+    error: null,
+    statsResponse: data,
   };
 }
 

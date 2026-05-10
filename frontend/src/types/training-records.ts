@@ -16,6 +16,20 @@ export type CreateTrainingRecordsRequest = {
   request_message?: string;
 };
 
+export type TrainingRecordStatsGroupBy = "day" | "week" | "month";
+
+export type TrainingRecordStat = {
+  period: string;
+  total_distance_km: number;
+  total_duration_minutes: number;
+  training_count: number;
+};
+
+export type TrainingRecordStatsResponse = {
+  group_by: TrainingRecordStatsGroupBy;
+  stats: TrainingRecordStat[];
+};
+
 export type UpdateTrainingRecordRequest = {
   completed?: boolean;
 };
