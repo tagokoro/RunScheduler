@@ -85,8 +85,7 @@ const formatDistance = (value: ValueType | undefined) =>
 const formatDuration = (value: ValueType | undefined) =>
   `${getNumericValue(value)} 分`;
 
-const formatSummaryDistance = (value: number) =>
-  `${value.toFixed(1)} km`;
+const formatSummaryDistance = (value: number) => `${value.toFixed(1)} km`;
 
 const formatSummaryDuration = (value: number) => `${value} 分`;
 
