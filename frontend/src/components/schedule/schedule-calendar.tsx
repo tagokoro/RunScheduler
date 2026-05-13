@@ -10,6 +10,7 @@ import {
 } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
+import { formatDateString } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import type { TrainingRecord } from "@/types/training-records";
 
@@ -23,14 +24,6 @@ type ScheduleCalendarProps = {
 };
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"] as const;
-
-const getDateString = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
 
 const getMonthTitle = (date: Date) =>
   `${date.getFullYear()}年 ${date.getMonth() + 1}月`;
@@ -46,7 +39,7 @@ export function ScheduleCalendar({
   const defaultClassNames = getDefaultClassNames();
 
   const ScheduleDayButton = (props: DayButtonProps) => {
-    const record = recordsByDate.get(getDateString(props.day.date)) ?? null;
+    const record = recordsByDate.get(formatDateString(props.day.date)) ?? null;
 
     return (
       <DayPickerDayButton
@@ -55,7 +48,7 @@ export function ScheduleCalendar({
           "flex min-h-20 w-full flex-col items-start justify-start gap-2 rounded-lg border border-neutral-200 p-2 text-left",
           props.modifiers.selected && "border-orange-400 bg-orange-50",
           !props.modifiers.selected &&
-            getDateString(props.day.date) === todayDateString &&
+            formatDateString(props.day.date) === todayDateString &&
             "border-orange-200",
         )}
       >

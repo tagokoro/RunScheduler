@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatDateString, formatJapaneseDate, parseDateString } from "@/lib/date";
 import { buildGoogleCalendarUrl } from "@/lib/google-calendar";
 import { cn } from "@/lib/utils";
 import type { TrainingRecord } from "@/types/training-records";
@@ -19,25 +20,11 @@ type ScheduleClientProps = {
   initialTrainingRecords: TrainingRecord[];
 };
 
-const getDateString = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
-
-const formatSelectedDate = (dateString: string) => {
-  const [year, month, day] = dateString.split("-");
-
-  return `${year}年${Number(month)}月${Number(day)}日`;
-};
-
 export function ScheduleClient({
   initialTrainingRecords,
 }: ScheduleClientProps) {
   const today = useMemo(() => new Date(), []);
-  const todayDateString = useMemo(() => getDateString(today), [today]);
+  const todayDateString = useMemo(() => formatDateString(today), [today]);
   const [visibleMonth, setVisibleMonth] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1),
   );
@@ -52,11 +39,10 @@ export function ScheduleClient({
   );
 
   const selectedRecord = recordsByDate.get(selectedDate) ?? null;
-  const selectedDateValue = useMemo(() => {
-    const [year, month, day] = selectedDate.split("-").map(Number);
-
-    return new Date(year, month - 1, day);
-  }, [selectedDate]);
+  const selectedDateValue = useMemo(
+    () => parseDateString(selectedDate),
+    [selectedDate],
+  );
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 p-6">
@@ -73,7 +59,7 @@ export function ScheduleClient({
             <CardDescription>
               {selectedDate === todayDateString ? "今日" : "選択中の日付"}
             </CardDescription>
-            <CardTitle>{formatSelectedDate(selectedDate)}</CardTitle>
+            <CardTitle>{formatJapaneseDate(selectedDate)}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-neutral-700">
             {selectedRecord ? (
@@ -147,7 +133,7 @@ export function ScheduleClient({
               todayDateString={todayDateString}
               recordsByDate={recordsByDate}
               onMonthChange={setVisibleMonth}
-              onSelectDate={(date) => setSelectedDate(getDateString(date))}
+              onSelectDate={(date) => setSelectedDate(formatDateString(date))}
             />
           </CardContent>
         </Card>

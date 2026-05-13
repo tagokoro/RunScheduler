@@ -20,21 +20,13 @@ import {
   listTrainingRecords,
   updateTrainingRecord,
 } from "@/lib/api/training-records";
+import { formatDateString } from "@/lib/date";
 import type {
   CreateTrainingRecordsRequest,
   TrainingRecord,
   Weekday,
 } from "@/types/training-records";
 import { WEEKDAYS } from "@/types/training-records";
-
-const getTodayDateString = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
 
 export default function Home() {
   const { showToast } = useToast();
@@ -49,7 +41,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdatingToday, setIsUpdatingToday] = useState(false);
   const todayTrainingRecord =
-    trainingRecords?.find((record) => record.date === getTodayDateString()) ??
+    trainingRecords?.find((record) => record.date === formatDateString(new Date())) ??
     null;
 
   const toggleWeekday = (weekday: Weekday) => {
