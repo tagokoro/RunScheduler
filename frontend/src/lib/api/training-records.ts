@@ -24,6 +24,10 @@ export type UpdateTrainingRecordResult = {
   trainingRecord: TrainingRecord | null;
 };
 
+export type DeleteTrainingRecordResult = {
+  error: string | null;
+};
+
 export type ListTrainingRecordStatsResult = {
   error: string | null;
   statsResponse: TrainingRecordStatsResponse | null;
@@ -125,5 +129,24 @@ export async function updateTrainingRecord(
   return {
     error: null,
     trainingRecord: data.training_record,
+  };
+}
+
+export async function deleteTrainingRecord(
+  trainingRecordId: string,
+): Promise<DeleteTrainingRecordResult> {
+  const response = await apiFetch(`/training_records/${trainingRecordId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    return {
+      error: "トレーニング記録の削除に失敗しました。",
+    };
+  }
+
+  return {
+    error: null,
   };
 }

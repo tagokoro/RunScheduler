@@ -17,6 +17,7 @@ import {
 import { useToast } from "@/components/ui/toaster";
 import {
   createTrainingRecords,
+  deleteTrainingRecord,
   listTrainingRecords,
   updateTrainingRecord,
 } from "@/lib/api/training-records";
@@ -40,8 +41,13 @@ export default function Home() {
   const [isLoadingRecords, setIsLoadingRecords] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdatingToday, setIsUpdatingToday] = useState(false);
+  const [selectedRecordForDelete, setSelectedRecordForDelete] =
+    useState<TrainingRecord | null>(null);
+  const [isDeletingRecord, setIsDeletingRecord] = useState(false);
   const todayTrainingRecord =
-    trainingRecords?.find((record) => record.date === formatDateString(new Date())) ??
+    trainingRecords?.find(
+      (record) => record.date === formatDateString(new Date()),
+    ) ??
     null;
 
   const toggleWeekday = (weekday: Weekday) => {
@@ -138,6 +144,36 @@ export default function Home() {
     }
   };
 
+  const handleDeleteRecord = async () => {
+    if (!selectedRecordForDelete) {
+      return;
+    }
+
+    setIsDeletingRecord(true);
+
+    try {
+      const result = await deleteTrainingRecord(selectedRecordForDelete.id);
+
+      if (result.error) {
+        showToast(result.error);
+        return;
+      }
+
+      setTrainingRecords(
+        (current) =>
+          current?.filter(
+            (record) => record.id !== selectedRecordForDelete.id,
+          ) ?? null,
+      );
+      setSelectedRecordForDelete(null);
+      showToast("トレーニング記録を削除しました。", "success");
+    } catch {
+      showToast("トレーニング記録の削除に失敗しました。");
+    } finally {
+      setIsDeletingRecord(false);
+    }
+  };
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 p-6">
       <section className="space-y-3">
@@ -159,16 +195,24 @@ export default function Home() {
             record={todayTrainingRecord}
             emphasis="highlighted"
             footer={
-              <Button
-                onClick={handleCompleteToday}
-                disabled={isUpdatingToday || todayTrainingRecord.completed}
-              >
-                {todayTrainingRecord.completed
-                  ? "完了済み"
-                  : isUpdatingToday
-                    ? "更新中..."
-                    : "完了"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedRecordForDelete(todayTrainingRecord)}
+                >
+                  削除
+                </Button>
+                <Button
+                  onClick={handleCompleteToday}
+                  disabled={isUpdatingToday || todayTrainingRecord.completed}
+                >
+                  {todayTrainingRecord.completed
+                    ? "完了済み"
+                    : isUpdatingToday
+                      ? "更新中..."
+                      : "完了"}
+                </Button>
+              </div>
             }
           />
         ) : (
@@ -278,10 +322,56 @@ export default function Home() {
       ) : (
         <div className="flex flex-col gap-4">
           {trainingRecords.map((record) => (
-            <TrainingRecordCard key={record.id} record={record} />
+            <TrainingRecordCard
+              key={record.id}
+              record={record}
+              footer={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedRecordForDelete(record)}
+                >
+                  削除
+                </Button>
+              }
+            />
           ))}
         </div>
       )}
+
+      <Dialog
+        open={selectedRecordForDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !isDeletingRecord) {
+            setSelectedRecordForDelete(null);
+          }
+        }}
+      >
+        <DialogContent showCloseButton={!isDeletingRecord}>
+          <DialogHeader>
+            <DialogTitle>このトレーニングを削除しますか？</DialogTitle>
+            <DialogDescription>
+              {selectedRecordForDelete
+                ? `${selectedRecordForDelete.date} の ${selectedRecordForDelete.training_type} を削除します。`
+                : "削除対象を確認しています。"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose
+              render={<Button variant="outline" disabled={isDeletingRecord} />}
+            >
+              キャンセル
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteRecord}
+              disabled={isDeletingRecord || selectedRecordForDelete === null}
+            >
+              {isDeletingRecord ? "削除中..." : "削除する"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
