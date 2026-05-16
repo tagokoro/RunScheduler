@@ -47,8 +47,7 @@ export default function Home() {
   const todayTrainingRecord =
     trainingRecords?.find(
       (record) => record.date === formatDateString(new Date()),
-    ) ??
-    null;
+    ) ?? null;
 
   const toggleWeekday = (weekday: Weekday) => {
     setSelectedWeekdays((current) =>
@@ -198,7 +197,9 @@ export default function Home() {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setSelectedRecordForDelete(todayTrainingRecord)}
+                  onClick={() =>
+                    setSelectedRecordForDelete(todayTrainingRecord)
+                  }
                 >
                   削除
                 </Button>

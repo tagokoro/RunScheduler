@@ -11,7 +11,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatDateString, formatJapaneseDate, parseDateString } from "@/lib/date";
+import {
+  formatDateString,
+  formatJapaneseDate,
+  parseDateString,
+} from "@/lib/date";
 import { buildGoogleCalendarUrl } from "@/lib/google-calendar";
 import { cn } from "@/lib/utils";
 import type { TrainingRecord } from "@/types/training-records";
