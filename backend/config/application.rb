@@ -31,6 +31,9 @@ module App
 
 
     config.middleware.use ActionDispatch::Cookies
-    config.middleware.use ActionDispatch::Session::CookieStore
+    config.middleware.use ActionDispatch::Session::CookieStore,
+                          key: "_app_session",
+                          same_site: :none,
+                          secure: true
   end
 end
