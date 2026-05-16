@@ -1,4 +1,6 @@
 class SessionsController < ApplicationController
+  FRONTEND_URL = ENV.fetch("FRONTEND_URL", "http://localhost:3001").freeze
+
   skip_before_action :check_logged_in, only: :create
 
   def show
@@ -18,7 +20,7 @@ class SessionsController < ApplicationController
 
     log_in user
 
-    redirect_to "http://localhost:3001/", allow_other_host: true # TODO FRONTEND_URLに分ける
+    redirect_to FRONTEND_URL, allow_other_host: true
   end
 
   def destroy
