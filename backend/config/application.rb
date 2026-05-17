@@ -30,10 +30,13 @@ module App
     config.api_only = true
 
 
+    session_options = {
+      key: "_app_session",
+      same_site: Rails.env.production? ? :none : :lax,
+      secure: Rails.env.production?
+    }
+
     config.middleware.use ActionDispatch::Cookies
-    config.middleware.use ActionDispatch::Session::CookieStore,
-                          key: "_app_session",
-                          same_site: :none,
-                          secure: true
+    config.middleware.use ActionDispatch::Session::CookieStore, **session_options
   end
 end
