@@ -76,9 +76,6 @@ export default function Header() {
                 <Link href="/statistics">Statistics</Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link href="/plans">Plan</Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
                 {user?.id != null ? (
                   <>
                     <NavigationMenuTrigger>
