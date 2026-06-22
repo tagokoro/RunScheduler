@@ -3,11 +3,11 @@ frontend_origin = URI.parse(frontend_url).then do |uri|
   default_port =
     (uri.scheme == "http" && uri.port == 80) ||
     (uri.scheme == "https" && uri.port == 443)
-  [uri.scheme, "://", uri.host, default_port ? nil : ":#{uri.port}"].join
+  [ uri.scheme, "://", uri.host, default_port ? nil : ":#{uri.port}" ].join
 end
 frontend_host = URI.parse(frontend_origin).host
 
-allowed_origins = [frontend_origin, "http://localhost:3001"]
+allowed_origins = [ frontend_origin, "http://localhost:3001" ]
 allowed_origin_patterns = []
 
 if frontend_host&.end_with?(".vercel.app")
