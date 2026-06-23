@@ -17,6 +17,7 @@
 # ====================
 backend/.bundle
 backend/.env*
+!backend/.env.example
 !backend/.env*.erb
 backend/log/*
 !backend/log/.keep
@@ -37,6 +38,7 @@ frontend/.next/
 frontend/out/
 frontend/build/
 frontend/.env*
+!frontend/.env.example
 frontend/coverage/
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts
