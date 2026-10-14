@@ -1,0 +1,13 @@
+repos:
+  - repo: local
+    hooks:
+      - id: forbid-sensitive-files
+        name: Block secret files and runtime logs
+        language: fail
+        entry: "秘密ファイル・ログ・キャッシュはコミットできません。git restore --staged で追跡対象から外してください。"
+        files: '(^|/)(config/(master\.key|credentials/[^/]+\.key)|\.env(\.(?!example$)[^/]+)?|(log|tmp)/.+|[^/]+\.pem)$'
+        exclude: '(^|/)\.keep$'
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
