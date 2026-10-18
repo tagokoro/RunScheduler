@@ -30,6 +30,13 @@ backend/public/assets
 backend/config/master.key
 backend/config/credentials/*.key
 
+# Secrets at any application root
+**/config/master.key
+**/config/credentials/*.key
+.env
+.env.*
+!.env.example
+
 # ====================
 # Frontend (Next.js)
 # ====================
