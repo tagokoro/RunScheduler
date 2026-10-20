@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   get "/health", to: "health#show"
 
   get "auth/:provider/callback", to: "sessions#create"
+  get "/csrf", to: "sessions#csrf"
   delete "/logout", to: "sessions#destroy"
   get "/me", to: "sessions#show"
 

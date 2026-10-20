@@ -11,7 +11,15 @@ module AuthHelper
       }
     )
 
+    get "/csrf"
+    post "/auth/google_oauth2", params: { authenticity_token: JSON.parse(response.body).fetch("csrf_token") }
     get "/auth/google_oauth2/callback"
+    get "/csrf"
+    @csrf_token = JSON.parse(response.body).fetch("csrf_token")
+  end
+
+  def csrf_headers
+    { "X-CSRF-Token" => @csrf_token }
   end
 
   def reset_google_auth

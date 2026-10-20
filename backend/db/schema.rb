@@ -10,10 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_20_094140) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000000) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
-  enable_extension "plpgsql"
+
+  create_table "login_sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token_digest", limit: 64, null: false
+    t.datetime "expires_at", null: false
+    t.datetime "revoked_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_login_sessions_on_expires_at"
+    t.index ["token_digest"], name: "index_login_sessions_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_login_sessions_on_user_id"
+  end
 
   create_table "profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -56,6 +68,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_094140) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "login_sessions", "users", on_delete: :cascade
   add_foreign_key "profiles", "users", on_delete: :cascade
   add_foreign_key "training_records", "users", on_delete: :cascade
 end

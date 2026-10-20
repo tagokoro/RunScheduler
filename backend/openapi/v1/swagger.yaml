@@ -28,9 +28,14 @@ paths:
   "/me/profile":
     patch:
       summary: update user profile
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
       tags:
       - Profile
-      parameters: []
       responses:
         '204':
           description: user profile is updated
@@ -114,6 +119,23 @@ paths:
                 - target_race_type
                 - target_time_seconds
                 - race_date
+  "/csrf":
+    get:
+      summary: Returns a CSRF token for OAuth forms and state-changing API requests
+      tags:
+      - Sessions
+      responses:
+        '200':
+          description: 'CSRF token returned (send cookies with credentials: include)'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  csrf_token:
+                    type: string
+                required:
+                - csrf_token
   "/me":
     get:
       summary: Returns current user
@@ -167,6 +189,12 @@ paths:
   "/logout":
     delete:
       summary: Log out current user
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
       tags:
       - Sessions
       responses:
@@ -234,9 +262,14 @@ paths:
                 - training_records
     post:
       summary: create training records
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
       tags:
       - TrainingRecords
-      parameters: []
       responses:
         '200':
           description: training records created
@@ -358,6 +391,12 @@ paths:
         type: string
     delete:
       summary: delete a training record
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
       tags:
       - TrainingRecords
       responses:
@@ -365,6 +404,12 @@ paths:
           description: training record deleted
     patch:
       summary: update a training record
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
       tags:
       - TrainingRecords
       responses:

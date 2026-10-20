@@ -1,7 +1,12 @@
 class SessionsController < ApplicationController
   FRONTEND_URL = ENV.fetch("FRONTEND_URL", "http://localhost:3001").freeze
 
-  skip_before_action :check_logged_in, only: :create
+  skip_before_action :check_logged_in, only: [ :create, :csrf ]
+
+  def csrf
+    response.headers["Cache-Control"] = "no-store"
+    render json: { csrf_token: form_authenticity_token }
+  end
 
   def show
     render json: {
