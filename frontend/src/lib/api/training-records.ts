@@ -38,7 +38,6 @@ export async function listTrainingRecords(
   const response = await apiFetch("/training_records", {
     cache: "no-store",
     cookieHeader,
-    credentials: "include",
   });
 
   if (!response.ok) {
@@ -58,7 +57,6 @@ export async function createTrainingRecords(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
-    credentials: "include",
   });
 
   if (!response.ok) {
@@ -85,7 +83,6 @@ export async function listTrainingRecordStats(
     {
       cache: "no-store",
       cookieHeader,
-      credentials: "include",
     },
   );
 
@@ -114,7 +111,6 @@ export async function updateTrainingRecord(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
-    credentials: "include",
   });
 
   if (!response.ok) {
@@ -137,7 +133,6 @@ export async function deleteTrainingRecord(
 ): Promise<DeleteTrainingRecordResult> {
   const response = await apiFetch(`/training_records/${trainingRecordId}`, {
     method: "DELETE",
-    credentials: "include",
   });
 
   if (!response.ok) {

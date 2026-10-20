@@ -125,6 +125,7 @@ Google client ID/secretは引き続きRails credentialsの `google.client_id` / 
 Renderの `CLIENT_ID` / `CLIENT_SECRET` だけを書き換えてもこの実装には反映されません。
 CloudflareのDNSは設定済みです。追加DNS・Renderカスタムドメインは不要です。
 
+- ブラウザのFetchは既定の `credentials: "same-origin"` を使うため、同一オリジンの `/api` へのCookie送信に `include` の指定は不要です。
 - ブラウザのCookieはrunplanホストに保存され、`Path=/` のためSSRページにも届きます。SSRは `cookies().toString()` を固定のAPI URLへ明示転送します。受信HostからAPI URLを生成しません。
 - 認証Cookie `__Host-run_session` とOAuth/CSRF用 `_oauth_session` は本番で `SameSite=Lax; Secure; HttpOnly; Path=/`、Domain指定なしです。DBによる期限・失効確認、OAuth state、CSRF検証を維持します。
 - API fetchは `no-store`、Rails応答と `/api` の設定は共有キャッシュ禁止です。VercelやCloudflareにAPIを強制キャッシュするルールを追加しないでください。

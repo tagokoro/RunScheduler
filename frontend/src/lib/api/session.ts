@@ -6,9 +6,7 @@ type MeResponse = {
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const response = await apiFetch("/me", {
-    credentials: "include",
-  });
+  const response = await apiFetch("/me");
 
   if (!response.ok) {
     return null;
@@ -21,7 +19,6 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 export async function logout(): Promise<boolean> {
   const response = await apiFetch("/logout", {
     method: "DELETE",
-    credentials: "include",
   });
 
   return response.ok;

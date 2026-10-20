@@ -4,7 +4,6 @@ type ApiFetchOptions = {
   body?: BodyInit;
   cache?: RequestCache;
   cookieHeader?: string;
-  credentials?: RequestCredentials;
 };
 
 export function apiUrl(path: string): string {
@@ -28,13 +27,11 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}) {
     headers,
     body: options.body,
     cache: "no-store",
-    credentials: options.credentials ?? "include",
   });
 }
 
 export async function getCsrfToken(): Promise<string> {
   const response = await fetch(apiUrl("/csrf"), {
-    credentials: "include",
     cache: "no-store",
   });
   if (!response.ok) throw new Error("CSRFトークンの取得に失敗しました。");
