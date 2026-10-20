@@ -1,7 +1,7 @@
 class SessionsController < ApplicationController
   FRONTEND_URL = ENV.fetch("FRONTEND_URL", "http://localhost:3001").freeze
 
-  skip_before_action :check_logged_in, only: [ :create, :csrf ]
+  skip_before_action :check_logged_in, only: [ :create, :csrf, :failure ]
 
   def csrf
     response.headers["Cache-Control"] = "no-store"
@@ -26,6 +26,10 @@ class SessionsController < ApplicationController
     log_in user
 
     redirect_to FRONTEND_URL, allow_other_host: true
+  end
+
+  def failure
+    redirect_to "#{FRONTEND_URL}/?auth_error=google", allow_other_host: true
   end
 
   def destroy

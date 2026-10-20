@@ -115,19 +115,19 @@ RSpec.describe "Session security", type: :request do
   it "sets host-only HTTPS cookie attributes in production and preserves them on deletion" do
     allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
     allow(ENV).to receive(:fetch).and_call_original
-    allow(ENV).to receive(:fetch).with("SESSION_SAME_SITE", "none").and_return("none")
+    allow(ENV).to receive(:fetch).with("SESSION_SAME_SITE", "lax").and_return("lax")
     stub_const("LoginSession::COOKIE_NAME", "__Host-run_session")
     https!
     sign_in_with_google(user)
     get "/auth/google_oauth2/callback"
     header = Array(response.headers["Set-Cookie"]).find { |value| value.start_with?("__Host-run_session=") }
-    expect(header).to include("path=/", "secure", "httponly", "samesite=none", "expires=")
+    expect(header).to include("path=/", "secure", "httponly", "samesite=lax", "expires=")
     expect(header).not_to include("domain=")
     token = csrf_token
     delete "/logout", headers: { "X-CSRF-Token" => token }
     expect(response).to have_http_status(:no_content)
     header = Array(response.headers["Set-Cookie"]).find { |value| value.start_with?("__Host-run_session=") }
-    expect(header).to include("path=/", "secure", "httponly", "samesite=none", "max-age=0")
+    expect(header).to include("path=/", "secure", "httponly", "samesite=lax", "max-age=0")
   end
 
   it "allows credentialed requests from the configured frontend" do

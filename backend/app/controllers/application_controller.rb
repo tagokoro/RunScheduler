@@ -2,6 +2,7 @@ class ApplicationController < ActionController::API
   include ActionController::Cookies
   include ActionController::RequestForgeryProtection
   include SessionsHelper
+  before_action :prevent_shared_cache
   before_action :check_logged_in
   protect_from_forgery with: :exception
 
@@ -16,6 +17,12 @@ class ApplicationController < ActionController::API
   end
 
   private
+
+  def prevent_shared_cache
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["CDN-Cache-Control"] = "no-store"
+    response.headers["Vercel-CDN-Cache-Control"] = "no-store"
+  end
 
   def valid_request_origin?
     WebSecurity.valid_origin?(request)

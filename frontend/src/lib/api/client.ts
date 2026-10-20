@@ -7,25 +7,33 @@ type ApiFetchOptions = {
   credentials?: RequestCredentials;
 };
 
+export function apiUrl(path: string): string {
+  const base =
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    (process.env.NODE_ENV === "production"
+      ? "https://runplan.tagokoro.dev/api"
+      : "http://localhost:3001/api");
+  return `${base.replace(/\/$/, "")}${path}`;
+}
+
 export async function apiFetch(path: string, options: ApiFetchOptions = {}) {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const headers = new Headers(options.headers);
   if (options.cookieHeader) headers.set("Cookie", options.cookieHeader);
   if (options.method && options.method !== "GET") {
     headers.set("X-CSRF-Token", await getCsrfToken());
   }
 
-  return fetch(`${apiBaseUrl}${path}`, {
+  return fetch(apiUrl(path), {
     method: options.method ?? "GET",
     headers,
     body: options.body,
-    cache: options.cache ?? "no-store",
-    credentials: options.credentials,
+    cache: "no-store",
+    credentials: options.credentials ?? "include",
   });
 }
 
 export async function getCsrfToken(): Promise<string> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/csrf`, {
+  const response = await fetch(apiUrl("/csrf"), {
     credentials: "include",
     cache: "no-store",
   });

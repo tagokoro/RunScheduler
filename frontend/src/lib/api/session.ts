@@ -1,4 +1,4 @@
-import { apiFetch, getCsrfToken } from "./client";
+import { apiFetch, apiUrl, getCsrfToken } from "./client";
 import type { CurrentUser } from "@/types/session";
 
 type MeResponse = {
@@ -31,7 +31,7 @@ export async function loginWithGoogle(): Promise<void> {
   const token = await getCsrfToken();
   const form = document.createElement("form");
   form.method = "POST";
-  form.action = `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google_oauth2`;
+  form.action = apiUrl("/auth/google_oauth2");
   const input = document.createElement("input");
   input.type = "hidden";
   input.name = "authenticity_token";

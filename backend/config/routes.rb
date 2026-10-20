@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
   get "/health", to: "health#show"
 
+  get "auth/failure", to: "sessions#failure"
   get "auth/:provider/callback", to: "sessions#create"
   get "/csrf", to: "sessions#csrf"
   delete "/logout", to: "sessions#destroy"

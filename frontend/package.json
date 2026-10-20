@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test:proxy": "tsc --module nodenext --moduleResolution nodenext --target es2022 --esModuleInterop --skipLibCheck --outDir .test-build tests/proxy.test.ts && node --test .test-build/proxy.test.js",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md,yaml,yml}\" \"*.{js,jsx,ts,tsx,json,css,md,yaml,yml}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md,yaml,yml}\" \"*.{js,jsx,ts,tsx,json,css,md,yaml,yml}\""
   },

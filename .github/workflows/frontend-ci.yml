@@ -88,5 +88,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check types
+        run: pnpm typecheck
+
+      - name: Test API proxy and SSR cookies
+        run: pnpm test:proxy
+
       - name: Build Next.js
         run: pnpm run build
