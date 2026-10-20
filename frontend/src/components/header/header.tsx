@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { getCurrentUser, getGoogleLoginUrl, logout } from "@/lib/api/session";
+import { getCurrentUser, loginWithGoogle, logout } from "@/lib/api/session";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -17,6 +17,8 @@ import type { CurrentUser } from "@/types/session";
 
 export default function Header() {
   const [user, setUser] = useState<CurrentUser | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -28,10 +30,27 @@ export default function Header() {
   }, []);
 
   const handleLogout = async () => {
-    const isLoggedOut = await logout();
+    setAuthError(null);
+    try {
+      if (await logout()) {
+        // Discard authenticated page data and the client router cache.
+        window.location.replace("/");
+      } else {
+        setAuthError("ログアウトに失敗しました。");
+      }
+    } catch {
+      setAuthError("ログアウトに失敗しました。");
+    }
+  };
 
-    if (isLoggedOut) {
-      setUser(null);
+  const handleLogin = async () => {
+    setAuthError(null);
+    setIsLoggingIn(true);
+    try {
+      await loginWithGoogle();
+    } catch {
+      setAuthError("ログインを開始できませんでした。");
+      setIsLoggingIn(false);
     }
   };
 
@@ -108,8 +127,13 @@ export default function Header() {
                     </NavigationMenuContent>
                   </>
                 ) : (
-                  <button className="hover:bg-white/15">
-                    <Link href={getGoogleLoginUrl()}>Login</Link>
+                  <button
+                    type="button"
+                    className="hover:bg-white/15"
+                    onClick={handleLogin}
+                    disabled={isLoggingIn}
+                  >
+                    Login
                   </button>
                 )}
               </NavigationMenuItem>
@@ -117,6 +141,7 @@ export default function Header() {
           </NavigationMenu>
         </div>
       </div>
+      {authError && <p role="alert">{authError}</p>}
     </header>
   );
 }

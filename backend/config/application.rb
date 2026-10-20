@@ -1,6 +1,7 @@
 require_relative "boot"
 
 require "rails/all"
+require_relative "../lib/web_security"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -30,11 +31,8 @@ module App
     config.api_only = true
 
 
-    session_options = {
-      key: "_app_session",
-      same_site: Rails.env.production? ? :none : :lax,
-      secure: Rails.env.production?
-    }
+    # CookieStore is only for OAuth state and Rails CSRF tokens, never authentication.
+    session_options = WebSecurity.cookie_options.merge(key: "_oauth_session", expire_after: 30.minutes)
 
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore, **session_options

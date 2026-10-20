@@ -1,6 +1,19 @@
 require 'swagger_helper'
 
 RSpec.describe "Sessions API", type: :request do
+  path "/csrf" do
+    get("Returns a CSRF token for OAuth forms and state-changing API requests") do
+      tags "Sessions"
+      produces "application/json"
+      response "200", "CSRF token returned for same-origin requests" do
+        schema type: :object,
+               properties: { csrf_token: { type: :string } },
+               required: [ "csrf_token" ]
+        run_test!
+      end
+    end
+  end
+
   path "/me" do
     get("Returns current user") do
       tags "Sessions"
@@ -45,6 +58,8 @@ RSpec.describe "Sessions API", type: :request do
 
   path "/logout" do
     delete("Log out current user") do
+      parameter name: "X-CSRF-Token", in: :header, required: true, schema: { type: :string }
+      let(:"X-CSRF-Token") { @csrf_token }
       tags "Sessions"
       produces "application/json"
 

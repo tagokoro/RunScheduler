@@ -23,18 +23,19 @@ export async function getProfile(
 export async function updateProfile(
   payload: UpdateProfilePayload,
 ): Promise<UpdateProfileResult> {
-  const response = await apiFetch("/me/profile", {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-    credentials: "include",
-  });
+  try {
+    const response = await apiFetch("/me/profile", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (!response.ok) {
+    if (response.ok) return { error: null };
+  } catch {
     return { error: "プロフィールの更新に失敗しました。" };
   }
 
-  return { error: null };
+  return { error: "プロフィールの更新に失敗しました。" };
 }

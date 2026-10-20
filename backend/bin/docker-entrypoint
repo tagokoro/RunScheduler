@@ -5,7 +5,8 @@ if [ -z "${LD_PRELOAD+x}" ] && [ -f /usr/lib/*/libjemalloc.so.2 ]; then
   export LD_PRELOAD="$(echo /usr/lib/*/libjemalloc.so.2)"
 fi
 
-# If running the rails server then create or migrate existing database
+# Prepare the database before starting Rails. With -e, a failed migration
+# stops the container instead of serving requests against an outdated schema.
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
   ./bin/rails db:prepare
 fi

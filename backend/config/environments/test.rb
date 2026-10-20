@@ -28,8 +28,8 @@ Rails.application.configure do
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
 
-  # Disable request forgery protection in test environment.
-  config.action_controller.allow_forgery_protection = false
+  # Exercise CSRF protection in request specs as in production.
+  config.action_controller.allow_forgery_protection = true
 
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test

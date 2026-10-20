@@ -1,4 +1,4 @@
-import { apiFetch } from "./client";
+import { apiFetch, apiUrl, getCsrfToken } from "./client";
 import type { CurrentUser } from "@/types/session";
 
 type MeResponse = {
@@ -6,9 +6,7 @@ type MeResponse = {
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const response = await apiFetch("/me", {
-    credentials: "include",
-  });
+  const response = await apiFetch("/me");
 
   if (!response.ok) {
     return null;
@@ -21,13 +19,21 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 export async function logout(): Promise<boolean> {
   const response = await apiFetch("/logout", {
     method: "DELETE",
-    credentials: "include",
   });
 
   return response.ok;
 }
 
-export function getGoogleLoginUrl(): string {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  return `${apiBaseUrl}/auth/google_oauth2`;
+export async function loginWithGoogle(): Promise<void> {
+  const token = await getCsrfToken();
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = apiUrl("/auth/google_oauth2");
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = "authenticity_token";
+  input.value = token;
+  form.append(input);
+  document.body.append(form);
+  form.submit();
 }
