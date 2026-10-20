@@ -49,19 +49,30 @@ paths:
               properties:
                 age:
                   type: integer
+                  minimum: 0
+                  maximum: 120
                 weight:
                   type: number
                   format: float
+                  minimum: 0.1
+                  maximum: 999.9
                 best_5k_seconds:
                   type: integer
+                  nullable: true
+                  minimum: 1
                 best_half_seconds:
                   type: integer
+                  nullable: true
+                  minimum: 1
                 best_full_seconds:
                   type: integer
+                  nullable: true
+                  minimum: 1
                 target_race_type:
                   type: string
                 target_time_seconds:
                   type: integer
+                  minimum: 1
                 race_date:
                   type: string
                   format: date
@@ -97,19 +108,30 @@ paths:
                 properties:
                   age:
                     type: integer
+                    minimum: 0
+                    maximum: 120
                   weight:
                     type: number
                     format: float
+                    minimum: 0.1
+                    maximum: 999.9
                   best_5k_seconds:
                     type: integer
+                    nullable: true
+                    minimum: 1
                   best_half_seconds:
                     type: integer
+                    nullable: true
+                    minimum: 1
                   best_full_seconds:
                     type: integer
+                    nullable: true
+                    minimum: 1
                   target_race_type:
                     type: string
                   target_time_seconds:
                     type: integer
+                    minimum: 1
                   race_date:
                     type: string
                     format: date
@@ -241,6 +263,12 @@ paths:
                           nullable: true
                         completed:
                           type: boolean
+                        actual_distance_km:
+                          type: number
+                          nullable: true
+                        actual_duration_minutes:
+                          type: integer
+                          nullable: true
                         feedback:
                           type: string
                           nullable: true
@@ -306,6 +334,12 @@ paths:
                           nullable: true
                         completed:
                           type: boolean
+                        actual_distance_km:
+                          type: number
+                          nullable: true
+                        actual_duration_minutes:
+                          type: integer
+                          nullable: true
                         feedback:
                           type: string
                           nullable: true
@@ -358,6 +392,7 @@ paths:
                 days:
                   type: integer
                   minimum: 1
+                  maximum: 31
                   example: 7
                 training_days:
                   type: array
@@ -415,6 +450,27 @@ paths:
       responses:
         '200':
           description: training record updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                completed:
+                  type: boolean
+                actual_distance_km:
+                  type: number
+                  nullable: true
+                  minimum: 0
+                  maximum: 999.99
+                actual_duration_minutes:
+                  type: integer
+                  nullable: true
+                  minimum: 1
+                  maximum: 1440
+                feedback:
+                  type: string
+                  maxLength: 2000
   "/training_records/today":
     get:
       summary: get today's training record
@@ -455,6 +511,12 @@ paths:
                         nullable: true
                       completed:
                         type: boolean
+                      actual_distance_km:
+                        type: number
+                        nullable: true
+                      actual_duration_minutes:
+                        type: integer
+                        nullable: true
                       feedback:
                         type: string
                         nullable: true

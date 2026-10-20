@@ -26,7 +26,32 @@ test(
           Location: "https://accounts.google.com/o/oauth2/auth?state=test",
         });
         res.end();
+      } else if (req.url === "/me") {
+        if (req.headers.cookie?.includes("unavailable")) {
+          res.statusCode = 503;
+          res.end(JSON.stringify({ error: "unavailable" }));
+        } else if (
+          !req.headers.cookie ||
+          req.headers.cookie.includes("logged-out")
+        ) {
+          res.statusCode = 401;
+          res.end(JSON.stringify({ error: "unauthorized" }));
+        } else
+          res.end(
+            JSON.stringify({
+              user: {
+                id: 1,
+                name: "Test runner",
+                email: "runner@example.test",
+              },
+            }),
+          );
       } else if (req.url === "/me/profile") {
+        if (req.headers.cookie?.includes("no-profile")) {
+          res.statusCode = 404;
+          res.end(JSON.stringify({ error: "not found" }));
+          return;
+        }
         res.end(
           JSON.stringify({
             age: 37,
@@ -163,6 +188,21 @@ test(
         const html = await response.text();
         if (path === "/profile") assert.match(html, /37/);
       }
+      const publicHome = await fetch(`${base}/`, {
+        headers: { Cookie: "session=logged-out" },
+      });
+      assert.match(await publicHome.text(), /目標を登録/);
+      const onboarding = await fetch(`${base}/`, {
+        headers: { Cookie: "session=no-profile" },
+      });
+      assert.match(await onboarding.text(), /まずは目標レースを登録/);
+      const unavailable = await fetch(`${base}/schedule`, {
+        headers: { Cookie: "session=unavailable" },
+      });
+      // Streaming can send the HTTP headers before a server component fails.
+      const unavailableHtml = await unavailable.text();
+      assert.match(unavailableHtml, /ログイン状態を確認できませんでした/);
+      assert.doesNotMatch(unavailableHtml, /この日の練習予定はありません/);
       for (const path of [
         "/me/profile",
         "/training_records",
@@ -177,8 +217,11 @@ test(
         );
       }
     } finally {
-      next.kill("SIGTERM");
-      await once(next, "exit");
+      if (next.exitCode === null) {
+        const exited = once(next, "exit");
+        next.kill("SIGTERM");
+        await exited;
+      }
       upstream.closeAllConnections();
       await new Promise<void>((resolve) => upstream.close(() => resolve()));
     }

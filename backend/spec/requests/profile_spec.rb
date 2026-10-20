@@ -32,13 +32,13 @@ RSpec.describe "Profile API", type: :request do
                 schema: {
                   type: :object,
                   properties: {
-                    age: { type: :integer },
-                    weight: { type: :number, format: :float },
-                    best_5k_seconds: { type: :integer },
-                    best_half_seconds: { type: :integer },
-                    best_full_seconds: { type: :integer },
+                    age: { type: :integer, minimum: 0, maximum: 120 },
+                    weight: { type: :number, format: :float, minimum: 0.1, maximum: 999.9 },
+                    best_5k_seconds: { type: :integer, nullable: true, minimum: 1 },
+                    best_half_seconds: { type: :integer, nullable: true, minimum: 1 },
+                    best_full_seconds: { type: :integer, nullable: true, minimum: 1 },
                     target_race_type: { type: :string },
-                    target_time_seconds: { type: :integer },
+                    target_time_seconds: { type: :integer, minimum: 1 },
                     race_date: { type: :string, format: :date }
                   },
                   required: [ "age", "weight", "target_race_type", "target_time_seconds", "race_date" ]
@@ -90,13 +90,13 @@ RSpec.describe "Profile API", type: :request do
         let!(:profile) { FactoryBot.create(:profile, user: user) }
         schema type: :object,
                properties: {
-                 age: { type: :integer },
-                 weight: { type: :number, format: :float },
-                 best_5k_seconds: { type: :integer },
-                 best_half_seconds: { type: :integer },
-                 best_full_seconds: { type: :integer },
+                 age: { type: :integer, minimum: 0, maximum: 120 },
+                 weight: { type: :number, format: :float, minimum: 0.1, maximum: 999.9 },
+                 best_5k_seconds: { type: :integer, nullable: true, minimum: 1 },
+                 best_half_seconds: { type: :integer, nullable: true, minimum: 1 },
+                 best_full_seconds: { type: :integer, nullable: true, minimum: 1 },
                  target_race_type: { type: :string },
-                 target_time_seconds: { type: :integer },
+                 target_time_seconds: { type: :integer, minimum: 1 },
                  race_date: { type: :string, format: :date }
                },
                required: [ "age", "weight", "target_race_type", "target_time_seconds", "race_date" ]

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import {
   Bar,
@@ -109,6 +110,7 @@ export function StatisticsClient({
 }: StatisticsClientProps) {
   const [statsResponse, setStatsResponse] = useState(initialStatsResponse);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const summary = summarizeStats(statsResponse.stats);
 
@@ -117,6 +119,7 @@ export function StatisticsClient({
       return;
     }
 
+    setError(null);
     setIsLoading(true);
 
     try {
@@ -124,7 +127,15 @@ export function StatisticsClient({
 
       if (result.statsResponse) {
         setStatsResponse(result.statsResponse);
+      } else {
+        setError(
+          result.error ?? "統計を取得できませんでした。再試行してください。",
+        );
       }
+    } catch {
+      setError(
+        "通信に失敗しました。表示中のデータを保持しています。もう一度集計単位を選んでください。",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -135,10 +146,19 @@ export function StatisticsClient({
       <section className="space-y-3">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900">
-            Statistics
+            練習の振り返り
           </h1>
         </div>
 
+        <p className="text-sm text-neutral-600">
+          完了した練習の実績を集計しています。休養日は回数に含みません。
+        </p>
+        {error && (
+          <p role="alert" className="text-red-700">
+            {error}
+          </p>
+        )}
+        {isLoading && <p role="status">集計しています…</p>}
         <div className="flex flex-wrap gap-2">
           {GROUP_BY_OPTIONS.map((option) => (
             <Button
@@ -155,6 +175,16 @@ export function StatisticsClient({
         </div>
       </section>
 
+      {statsResponse.stats.length === 0 && (
+        <section className="space-y-3 rounded-xl border border-dashed p-6">
+          <p>
+            まだ練習の実績がありません。練習後に距離・時間を記録すると、ここで振り返れます。
+          </p>
+          <Link href="/schedule" className="text-blue-700 underline">
+            カレンダーから実績を記録する
+          </Link>
+        </section>
+      )}
       <section className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
@@ -180,85 +210,93 @@ export function StatisticsClient({
         </Card>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>走行距離</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={distanceChartConfig}>
-              <BarChart data={statsResponse.stats}>
-                <CartesianGrid vertical={false} stroke="#f5f5f5" />
-                <XAxis dataKey="period" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} />
-                <ChartTooltip
-                  content={<ChartTooltipContent formatter={formatDistance} />}
-                />
-                <Bar
-                  dataKey="total_distance_km"
-                  fill="var(--color-total_distance_km)"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+      {statsResponse.stats.length > 0 && (
+        <>
+          <section className="grid gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>走行距離</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={distanceChartConfig}>
+                  <BarChart data={statsResponse.stats}>
+                    <CartesianGrid vertical={false} stroke="#f5f5f5" />
+                    <XAxis dataKey="period" tickLine={false} axisLine={false} />
+                    <YAxis tickLine={false} axisLine={false} />
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent formatter={formatDistance} />
+                      }
+                    />
+                    <Bar
+                      dataKey="total_distance_km"
+                      fill="var(--color-total_distance_km)"
+                      radius={[8, 8, 0, 0]}
+                    />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>走行時間</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={durationChartConfig}>
-              <LineChart data={statsResponse.stats}>
-                <CartesianGrid vertical={false} stroke="#f5f5f5" />
-                <XAxis dataKey="period" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} />
-                <ChartTooltip
-                  content={<ChartTooltipContent formatter={formatDuration} />}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="total_duration_minutes"
-                  stroke="var(--color-total_duration_minutes)"
-                  strokeWidth={2}
-                  dot={{ fill: "var(--color-total_duration_minutes)" }}
-                />
-              </LineChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </section>
+            <Card>
+              <CardHeader>
+                <CardTitle>走行時間</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={durationChartConfig}>
+                  <LineChart data={statsResponse.stats}>
+                    <CartesianGrid vertical={false} stroke="#f5f5f5" />
+                    <XAxis dataKey="period" tickLine={false} axisLine={false} />
+                    <YAxis tickLine={false} axisLine={false} />
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent formatter={formatDuration} />
+                      }
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="total_duration_minutes"
+                      stroke="var(--color-total_duration_minutes)"
+                      strokeWidth={2}
+                      dot={{ fill: "var(--color-total_duration_minutes)" }}
+                    />
+                  </LineChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </section>
 
-      <section>
-        <Card>
-          <CardHeader>
-            <CardTitle>実施回数</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={trainingCountChartConfig}
-              className="h-[240px]"
-            >
-              <BarChart data={statsResponse.stats}>
-                <CartesianGrid vertical={false} stroke="#f5f5f5" />
-                <XAxis dataKey="period" tickLine={false} axisLine={false} />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="training_count"
-                  fill="var(--color-training_count)"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </section>
+          <section>
+            <Card>
+              <CardHeader>
+                <CardTitle>実施回数</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={trainingCountChartConfig}
+                  className="h-[240px]"
+                >
+                  <BarChart data={statsResponse.stats}>
+                    <CartesianGrid vertical={false} stroke="#f5f5f5" />
+                    <XAxis dataKey="period" tickLine={false} axisLine={false} />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      allowDecimals={false}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar
+                      dataKey="training_count"
+                      fill="var(--color-training_count)"
+                      radius={[8, 8, 0, 0]}
+                    />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </section>
+        </>
+      )}
     </main>
   );
 }

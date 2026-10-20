@@ -14,6 +14,7 @@ class ChatgptService
 
   OPENAI_API_URL = "https://api.openai.com/v1/responses".freeze
   DEFAULT_MODEL = "gpt-4.1".freeze
+  TRAINING_DAYS = %w[monday tuesday wednesday thursday friday saturday sunday].freeze
 
   def initialize(model: DEFAULT_MODEL, api_key: nil)
     @model = model
@@ -24,8 +25,14 @@ class ChatgptService
 
   def generate_training_records(profile:, days:, training_days:, request_message: nil)
     raise Error, "profile is required" if profile.blank?
-    raise Error, "days must be greater than 0" if days.to_i <= 0
-    raise Error, "training_days is required" if training_days.blank?
+    unless days.is_a?(Integer) && (1..31).cover?(days)
+      raise Error, "生成日数は1〜31日の整数で指定してください。"
+    end
+    unless training_days.is_a?(Array) && training_days.any? && (training_days - TRAINING_DAYS).empty?
+      raise Error, "練習する曜日を1つ以上選択してください。"
+    end
+    raise Error, "大会日を更新してから予定を作成してください。" if profile.race_date < Date.current
+    raise Error, "要望は2000文字以内で入力してください。" if request_message.to_s.length > 2000
 
     response = post_to_openai(
       input: build_input(
@@ -37,7 +44,14 @@ class ChatgptService
       text_format: training_records_schema
     )
 
-    parse_training_records_response(response)
+    result = parse_training_records_response(response)
+    records = result["training_records"] if result.is_a?(Hash)
+    expected_dates = (Date.current...(Date.current + days)).map(&:to_s)
+    unless records.is_a?(Array) && records.all? { |record| record.is_a?(Hash) && record["date"].is_a?(String) } &&
+        records.map { |record| record["date"] }.sort == expected_dates.sort
+      raise Error, "予定の生成結果を確認できませんでした。もう一度お試しください。"
+    end
+    result
   end
 
   private
@@ -48,6 +62,8 @@ class ChatgptService
     uri = URI.parse(OPENAI_API_URL)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
+    http.open_timeout = 10
+    http.read_timeout = 90
 
     request = Net::HTTP::Post.new(uri.request_uri)
     request["Content-Type"] = "application/json"
@@ -65,8 +81,9 @@ class ChatgptService
 
     return body if response.is_a?(Net::HTTPSuccess)
 
-    message = body.dig("error", "message") || "OpenAI API request failed"
-    raise Error.new(message, status: response.code.to_i)
+    raise Error.new("予定を生成できませんでした。時間をおいて再試行してください。", status: :service_unavailable)
+  rescue Net::OpenTimeout, Net::ReadTimeout, SocketError, SystemCallError
+    raise Error.new("予定の生成に時間がかかっています。時間をおいて再試行してください。", status: :service_unavailable)
   rescue JSON::ParserError
     raise Error, "OpenAI API returned invalid JSON"
   end

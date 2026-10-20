@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -55,6 +55,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000000) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "actual_distance_km", precision: 5, scale: 2
+    t.integer "actual_duration_minutes"
     t.index ["date"], name: "index_training_records_on_date"
     t.index ["user_id", "date"], name: "index_training_records_on_user_id_and_date", unique: true
     t.index ["user_id"], name: "index_training_records_on_user_id"

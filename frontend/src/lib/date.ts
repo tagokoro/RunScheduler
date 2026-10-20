@@ -28,3 +28,12 @@ export const addDaysToDateString = (dateString: string, days: number) => {
 
   return date;
 };
+
+// The product uses Japan dates for plans, completion and daily statistics.
+export const trainingToday = (now = new Date()) =>
+  new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);

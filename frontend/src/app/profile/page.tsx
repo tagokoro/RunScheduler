@@ -1,52 +1,24 @@
 import Link from "next/link";
+import { LoginPrompt } from "@/components/auth/login-button";
+import { getCurrentUser } from "@/lib/api/session";
+import { formatDuration, RACE_LABELS } from "@/lib/profile-time";
 import { cookies } from "next/headers";
 import { getProfile } from "@/lib/api/profile";
 
-async function fetchProfile(): Promise<{
-  error: string | null;
-  profile: Awaited<ReturnType<typeof getProfile>>;
-}> {
-  try {
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore.toString();
-    const profile = await getProfile(cookieHeader);
-
-    if (!profile) {
-      return {
-        error: "プロフィールがまだ作成されていません。",
-        profile: null,
-      };
-    }
-
-    return {
-      error: null,
-      profile,
-    };
-  } catch {
-    return {
-      error: "プロフィールの取得に失敗しました。",
-      profile: null,
-    };
-  }
-}
-
 export default async function Page() {
-  const { error, profile } = await fetchProfile();
-
-  if (error) {
+  const cookieHeader = (await cookies()).toString();
+  if (!(await getCurrentUser(cookieHeader))) return <LoginPrompt />;
+  const profile = await getProfile(cookieHeader);
+  if (!profile)
     return (
-      <main className="space-y-4 px-6 py-10">
-        <p>{error}</p>
-        <Link href="/profile/edit" className="text-blue-600 underline">
-          プロフィールを作成する
+      <main className="mx-auto max-w-3xl space-y-4 p-6 py-10">
+        <h1 className="text-2xl font-semibold">練習の目標を登録しましょう</h1>
+        <p>レースと目標タイムを登録すると、予定を作成できます。</p>
+        <Link href="/profile/edit" className="text-blue-700 underline">
+          プロフィールを登録する
         </Link>
       </main>
     );
-  }
-
-  if (!profile) {
-    return <main className="px-6 py-10">プロフィールがありません。</main>;
-  }
 
   return (
     <main className="space-y-6 px-6 py-10">
@@ -57,6 +29,9 @@ export default async function Page() {
         </Link>
       </div>
 
+      <Link href="/" className="inline-block text-blue-700 underline">
+        練習予定の作成・記録へ進む
+      </Link>
       <dl className="grid max-w-2xl gap-3 sm:grid-cols-2">
         <div>
           <dt className="text-sm text-gray-500">年齢</dt>
@@ -68,23 +43,23 @@ export default async function Page() {
         </div>
         <div>
           <dt className="text-sm text-gray-500">5km ベスト</dt>
-          <dd>{profile.best_5k_seconds ?? "-"} 秒</dd>
+          <dd>{formatDuration(profile.best_5k_seconds)}</dd>
         </div>
         <div>
           <dt className="text-sm text-gray-500">ハーフ ベスト</dt>
-          <dd>{profile.best_half_seconds ?? "-"} 秒</dd>
+          <dd>{formatDuration(profile.best_half_seconds)}</dd>
         </div>
         <div>
           <dt className="text-sm text-gray-500">フル ベスト</dt>
-          <dd>{profile.best_full_seconds ?? "-"} 秒</dd>
+          <dd>{formatDuration(profile.best_full_seconds)}</dd>
         </div>
         <div>
           <dt className="text-sm text-gray-500">目標レース</dt>
-          <dd>{profile.target_race_type}</dd>
+          <dd>{RACE_LABELS[profile.target_race_type]}</dd>
         </div>
         <div>
           <dt className="text-sm text-gray-500">目標タイム</dt>
-          <dd>{profile.target_time_seconds} 秒</dd>
+          <dd>{formatDuration(profile.target_time_seconds)}</dd>
         </div>
         <div>
           <dt className="text-sm text-gray-500">レース日</dt>

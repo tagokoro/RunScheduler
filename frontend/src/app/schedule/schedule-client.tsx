@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { TrainingRecordCard } from "@/components/training-record-card";
+import { TrainingRecordEditor } from "@/components/training-record-editor";
 import { useMemo, useState } from "react";
 
 import { ScheduleCalendar } from "@/components/schedule/schedule-calendar";
@@ -13,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import {
   formatDateString,
+  trainingToday,
   formatJapaneseDate,
   parseDateString,
 } from "@/lib/date";
@@ -27,7 +31,8 @@ type ScheduleClientProps = {
 export function ScheduleClient({
   initialTrainingRecords,
 }: ScheduleClientProps) {
-  const today = useMemo(() => new Date(), []);
+  const [records, setRecords] = useState(initialTrainingRecords);
+  const today = useMemo(() => parseDateString(trainingToday()), []);
   const todayDateString = useMemo(() => formatDateString(today), [today]);
   const [visibleMonth, setVisibleMonth] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1),
@@ -35,11 +40,8 @@ export function ScheduleClient({
   const [selectedDate, setSelectedDate] = useState(todayDateString);
 
   const recordsByDate = useMemo(
-    () =>
-      new Map(
-        initialTrainingRecords.map((record) => [record.date, record] as const),
-      ),
-    [initialTrainingRecords],
+    () => new Map(records.map((record) => [record.date, record] as const)),
+    [records],
   );
 
   const selectedRecord = recordsByDate.get(selectedDate) ?? null;
@@ -52,7 +54,9 @@ export function ScheduleClient({
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 p-6">
       <section className="space-y-3">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">Schedule</h1>
+          <h1 className="text-2xl font-semibold text-neutral-900">
+            練習カレンダー
+          </h1>
           <p className="text-sm text-neutral-500">
             日付を選んで、その日のトレーニング内容を確認できます。
           </p>
@@ -68,43 +72,22 @@ export function ScheduleClient({
           <CardContent className="space-y-3 text-sm text-neutral-700">
             {selectedRecord ? (
               <>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-medium text-neutral-900">
-                      {selectedRecord.training_type}
-                    </p>
-                    <p>{selectedRecord.description}</p>
-                  </div>
-                  <span className="rounded-full bg-white px-3 py-1 text-xs text-orange-700">
-                    {selectedRecord.completed ? "完了" : "未完了"}
-                  </span>
-                </div>
-                <dl className="space-y-2">
-                  <div className="flex justify-between gap-4 border-t border-orange-200 pt-2">
-                    <dt className="text-neutral-500">距離</dt>
-                    <dd>
-                      {selectedRecord.distance_km === null
-                        ? "-"
-                        : `${selectedRecord.distance_km} km`}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-4 border-t border-orange-200 pt-2">
-                    <dt className="text-neutral-500">時間</dt>
-                    <dd>
-                      {selectedRecord.duration_minutes === null
-                        ? "-"
-                        : `${selectedRecord.duration_minutes} 分`}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-4 border-t border-orange-200 pt-2">
-                    <dt className="text-neutral-500">ペース</dt>
-                    <dd>{selectedRecord.pace ?? "-"}</dd>
-                  </div>
-                  <div className="flex justify-between gap-4 border-t border-orange-200 pt-2">
-                    <dt className="text-neutral-500">メモ</dt>
-                    <dd>{selectedRecord.notes ?? "-"}</dd>
-                  </div>
-                </dl>
+                <TrainingRecordCard
+                  record={selectedRecord}
+                  footer={
+                    <TrainingRecordEditor
+                      key={selectedRecord.id}
+                      record={selectedRecord}
+                      onSaved={(updated) =>
+                        setRecords((current) =>
+                          current.map((record) =>
+                            record.id === updated.id ? updated : record,
+                          ),
+                        )
+                      }
+                    />
+                  }
+                />
                 <div className="flex justify-end border-t border-orange-200 pt-3">
                   <a
                     href={buildGoogleCalendarUrl(selectedRecord)}
@@ -120,14 +103,19 @@ export function ScheduleClient({
                 </div>
               </>
             ) : (
-              <p>この日のトレーニング予定はありません。</p>
+              <div className="space-y-3">
+                <p>この日の練習予定はありません。</p>
+                <Link href="/" className="text-blue-700 underline">
+                  ホームで練習予定を作成する
+                </Link>
+              </div>
             )}
           </CardContent>
         </Card>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-neutral-900">Calendar</h2>
+        <h2 className="text-xl font-semibold text-neutral-900">日付を選ぶ</h2>
 
         <Card>
           <CardContent className="p-2">

@@ -32,6 +32,9 @@ export type TrainingRecordStatsResponse = {
 
 export type UpdateTrainingRecordRequest = {
   completed?: boolean;
+  actual_distance_km?: number | null;
+  actual_duration_minutes?: number | null;
+  feedback?: string;
 };
 
 export type TrainingRecord = {
@@ -41,6 +44,8 @@ export type TrainingRecord = {
   description: string;
   distance_km: number | null;
   duration_minutes: number | null;
+  actual_distance_km: number | null;
+  actual_duration_minutes: number | null;
   pace: string | null;
   completed: boolean;
   feedback: string | null;

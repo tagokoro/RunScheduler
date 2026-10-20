@@ -1,4 +1,4 @@
-import { apiFetch } from "./client";
+import { apiFetch, apiErrorMessage } from "./client";
 import type {
   CreateTrainingRecordsRequest,
   TrainingRecord,
@@ -40,7 +40,9 @@ export async function listTrainingRecords(
   });
 
   if (!response.ok) {
-    return null;
+    throw new Error(
+      await apiErrorMessage(response, "練習予定を取得できませんでした。"),
+    );
   }
 
   const data: TrainingRecordsResponse = await response.json();
@@ -60,7 +62,13 @@ export async function createTrainingRecords(
 
   if (!response.ok) {
     return {
-      error: "トレーニング予定の生成に失敗しました。",
+      error:
+        response.status === 404
+          ? "プロフィールを登録してから予定を作成してください。"
+          : await apiErrorMessage(
+              response,
+              "予定を生成できませんでした。入力内容を確認して再試行してください。",
+            ),
       trainingRecords: null,
     };
   }
@@ -86,7 +94,7 @@ export async function listTrainingRecordStats(
 
   if (!response.ok) {
     return {
-      error: "統計情報の取得に失敗しました。",
+      error: await apiErrorMessage(response, "統計情報の取得に失敗しました。"),
       statsResponse: null,
     };
   }
@@ -113,7 +121,10 @@ export async function updateTrainingRecord(
 
   if (!response.ok) {
     return {
-      error: "トレーニング記録の更新に失敗しました。",
+      error: await apiErrorMessage(
+        response,
+        "実績を保存できませんでした。日付・距離・時間を確認してください。",
+      ),
       trainingRecord: null,
     };
   }

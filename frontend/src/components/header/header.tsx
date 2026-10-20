@@ -3,145 +3,103 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-import { getCurrentUser, loginWithGoogle, logout } from "@/lib/api/session";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuContent,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getCurrentUser, logout } from "@/lib/api/session";
+import { LoginButton } from "@/components/auth/login-button";
 import type { CurrentUser } from "@/types/session";
 
 export default function Header() {
   const [user, setUser] = useState<CurrentUser | null>(null);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-    };
-
-    void fetchCurrentUser();
+    void getCurrentUser()
+      .then(setUser)
+      .catch(() =>
+        setError(
+          "ログイン状態を確認できません。ページを再読み込みしてください。",
+        ),
+      )
+      .finally(() => setLoading(false));
+    if (new URLSearchParams(window.location.search).has("auth_error")) {
+      Promise.resolve().then(() =>
+        setError(
+          "Googleログインを完了できませんでした。もう一度ログインしてください。",
+        ),
+      );
+    }
   }, []);
-
-  const handleLogout = async () => {
-    setAuthError(null);
-    try {
-      if (await logout()) {
-        // Discard authenticated page data and the client router cache.
-        window.location.replace("/");
-      } else {
-        setAuthError("ログアウトに失敗しました。");
-      }
-    } catch {
-      setAuthError("ログアウトに失敗しました。");
-    }
-  };
-
-  const handleLogin = async () => {
-    setAuthError(null);
-    setIsLoggingIn(true);
-    try {
-      await loginWithGoogle();
-    } catch {
-      setAuthError("ログインを開始できませんでした。");
-      setIsLoggingIn(false);
-    }
-  };
-
   return (
-    <header className="h-20 w-full bg-blue-700">
-      <div className="relative mx-auto flex h-full w-full items-center px-6">
-        <div className="flex flex-1 justify-start">
-          <NavigationMenu>
-            <NavigationMenuList className="flex gap-3">
-              <NavigationMenuItem></NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-        </div>
-
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <Link
-            href="/"
-            className="flex h-11 items-center gap-2 rounded-lg px-3 font-heading text-3xl font-semibold text-white"
-          >
-            <Image
-              src="/icon.png"
-              alt="RunAI logo"
-              width={50}
-              height={50}
-              className="size-10"
-              priority
-            />
-            <span>RunAI</span>
+    <header className="w-full bg-blue-700 text-white">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-2xl font-semibold"
+        >
+          <Image src="/icon.png" alt="" width={40} height={40} />
+          RunAI
+        </Link>
+        <nav
+          aria-label="メインナビゲーション"
+          className="flex flex-wrap items-center gap-2 text-sm sm:gap-4"
+        >
+          <Link href="/" className="inline-flex min-h-11 items-center">
+            ホーム
           </Link>
-        </div>
-
-        <div className="flex flex-1 justify-end">
-          <NavigationMenu>
-            <NavigationMenuList className="flex gap-6 text-white text-xl">
-              <NavigationMenuItem>
-                <Link href="/">Home</Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link href="/schedule">Schedule</Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link href="/statistics">Statistics</Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                {user?.id != null ? (
-                  <>
-                    <NavigationMenuTrigger>
-                      <Avatar className="h-9 w-9">
-                        {user?.image ? (
-                          <AvatarImage
-                            src={user.image}
-                            alt={user.name ?? user.email ?? "User avatar"}
-                          />
-                        ) : (
-                          <AvatarFallback>
-                            {user?.name?.slice(0, 1) ??
-                              user?.email?.slice(0, 1) ??
-                              "R"}
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent className="bg-blue-50">
-                      <ul className="w-48 gap-3 text-lg">
-                        <li>
-                          <Link href="/profile">Profile</Link>
-                        </li>
-                        <li>
-                          <button type="button" onClick={handleLogout}>
-                            SignOut
-                          </button>
-                        </li>
-                      </ul>
-                    </NavigationMenuContent>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    className="hover:bg-white/15"
-                    onClick={handleLogin}
-                    disabled={isLoggingIn}
-                  >
-                    Login
-                  </button>
-                )}
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-        </div>
+          <Link href="/schedule" className="inline-flex min-h-11 items-center">
+            予定・記録
+          </Link>
+          <Link
+            href="/statistics"
+            className="inline-flex min-h-11 items-center"
+          >
+            振り返り
+          </Link>
+          {loading ? (
+            <span role="status">確認中…</span>
+          ) : user ? (
+            <>
+              <Link
+                href="/profile"
+                className="inline-flex min-h-11 items-center"
+              >
+                目標・プロフィール
+              </Link>
+              <button
+                type="button"
+                disabled={loggingOut}
+                className="min-h-11 cursor-pointer disabled:opacity-60"
+                onClick={async () => {
+                  setLoggingOut(true);
+                  try {
+                    if (await logout()) {
+                      window.location.replace("/");
+                      return;
+                    }
+                    setError(
+                      "ログアウトできませんでした。もう一度お試しください。",
+                    );
+                  } catch {
+                    setError(
+                      "ログアウトできませんでした。通信状況を確認してください。",
+                    );
+                  }
+                  setLoggingOut(false);
+                }}
+              >
+                {loggingOut ? "ログアウト中…" : "ログアウト"}
+              </button>
+            </>
+          ) : (
+            <LoginButton />
+          )}
+        </nav>
       </div>
-      {authError && <p role="alert">{authError}</p>}
+      {error && (
+        <p role="alert" className="bg-red-50 p-3 text-sm text-red-800">
+          {error}
+        </p>
+      )}
     </header>
   );
 }

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { type UseFormRegisterReturn, useForm } from "react-hook-form";
 
+import { durationInput, durationSeconds } from "@/lib/profile-time";
+import { trainingToday } from "@/lib/date";
 import { useToast } from "@/components/ui/toaster";
 import { updateProfile } from "@/lib/api/profile";
 import type {
@@ -23,7 +25,7 @@ const defaultValues: ProfileFormValues = {
   best_5k_seconds: "",
   best_half_seconds: "",
   best_full_seconds: "",
-  target_race_type: "half",
+  target_race_type: "full",
   target_time_seconds: "",
   race_date: "",
 };
@@ -38,6 +40,7 @@ export function ProfileEditForm({ initialProfile }: Props) {
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<ProfileFormValues>({
     defaultValues,
@@ -47,153 +50,179 @@ export function ProfileEditForm({ initialProfile }: Props) {
     reset({
       age: initialProfile?.age?.toString() ?? "",
       weight: initialProfile?.weight?.toString() ?? "",
-      best_5k_seconds: initialProfile?.best_5k_seconds?.toString() ?? "",
-      best_half_seconds: initialProfile?.best_half_seconds?.toString() ?? "",
-      best_full_seconds: initialProfile?.best_full_seconds?.toString() ?? "",
-      target_race_type: initialProfile?.target_race_type ?? "half",
-      target_time_seconds:
-        initialProfile?.target_time_seconds?.toString() ?? "",
+      best_5k_seconds: durationInput(initialProfile?.best_5k_seconds),
+      best_half_seconds: durationInput(initialProfile?.best_half_seconds),
+      best_full_seconds: durationInput(initialProfile?.best_full_seconds),
+      target_race_type: initialProfile?.target_race_type ?? "full",
+      target_time_seconds: durationInput(initialProfile?.target_time_seconds),
       race_date: initialProfile?.race_date ?? "",
     });
   }, [initialProfile, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
-    const result = await updateProfile(values);
+    const payload = { ...values };
+    for (const key of [
+      "best_5k_seconds",
+      "best_half_seconds",
+      "best_full_seconds",
+      "target_time_seconds",
+    ] as const) {
+      payload[key] =
+        values[key] === "" ? "" : String(durationSeconds(values[key]));
+    }
+    const result = await updateProfile(payload);
 
     if (!result.error) {
       showToast("プロフィールを保存しました。", "success");
-      router.push("/profile");
+      router.push(initialProfile ? "/profile" : "/");
+      router.refresh();
       return;
     }
 
-    showToast(result.error);
+    setError("root", { message: result.error });
   });
 
   return (
     <main className="mx-auto w-full max-w-2xl px-6 py-10">
       <div className="mb-6 space-y-2">
-        <h1 className="text-2xl font-semibold">プロフィール編集</h1>
+        <h1 className="text-2xl font-semibold">
+          {initialProfile
+            ? "目標・プロフィールの編集"
+            : "目標・プロフィールの登録"}
+        </h1>
         <p className="text-sm text-gray-600">
-          必要な項目を入力して保存してください。
+          大会と目標タイムを登録します。ベストタイムは任意です。未計測なら空欄のまま進められます。
         </p>
       </div>
-      <form onSubmit={onSubmit} className="space-y-6">
-        <FormField
-          label="年齢"
-          type="number"
-          placeholder="30"
-          registration={register("age", {
-            required: "年齢を入力してください。",
-            min: {
-              value: 0,
-              message: "0以上の数値を入力してください。",
-            },
-          })}
-          error={errors.age?.message}
-        />
-
-        <FormField
-          label="体重(kg)"
-          type="number"
-          step="0.1"
-          placeholder="60.0"
-          registration={register("weight", {
-            required: "体重を入力してください。",
-            min: {
-              value: 0.1,
-              message: "0より大きい数値を入力してください。",
-            },
-          })}
-          error={errors.weight?.message}
-        />
-
-        <FormField
-          label="5km ベスト(秒)"
-          type="number"
-          placeholder="1500"
-          registration={register("best_5k_seconds", {
-            min: {
-              value: 0,
-              message: "0以上の数値を入力してください。",
-            },
-          })}
-          error={errors.best_5k_seconds?.message}
-        />
-
-        <FormField
-          label="ハーフ ベスト(秒)"
-          type="number"
-          placeholder="7200"
-          registration={register("best_half_seconds", {
-            min: {
-              value: 0,
-              message: "0以上の数値を入力してください。",
-            },
-          })}
-          error={errors.best_half_seconds?.message}
-        />
-
-        <FormField
-          label="フル ベスト(秒)"
-          type="number"
-          placeholder="14400"
-          registration={register("best_full_seconds", {
-            min: {
-              value: 0,
-              message: "0以上の数値を入力してください。",
-            },
-          })}
-          error={errors.best_full_seconds?.message}
-        />
-
-        <div className="space-y-2">
-          <label
-            htmlFor="target_race_type"
-            className="block text-sm font-medium"
-          >
-            目標レース
-          </label>
-          <select
-            id="target_race_type"
-            {...register("target_race_type", {
-              required: "目標レースを選択してください。",
+      <form onSubmit={onSubmit} className="space-y-6" noValidate>
+        <fieldset disabled={isSubmitting} className="space-y-6">
+          <FormField
+            label="年齢"
+            type="number"
+            placeholder="30"
+            registration={register("age", {
+              required: "年齢を入力してください。",
+              max: { value: 120, message: "120以下の年齢を入力してください。" },
+              validate: (value) =>
+                Number.isInteger(Number(value)) || "整数で入力してください。",
+              min: {
+                value: 0,
+                message: "0以上の数値を入力してください。",
+              },
             })}
-            className="w-full rounded border px-3 py-2"
-          >
-            <option value="5k">5km</option>
-            <option value="half">ハーフ</option>
-            <option value="full">フル</option>
-          </select>
-          {errors.target_race_type?.message ? (
-            <p className="text-sm text-red-600">
-              {errors.target_race_type.message}
-            </p>
-          ) : null}
-        </div>
+            error={errors.age?.message}
+          />
 
-        <FormField
-          label="目標タイム(秒)"
-          type="number"
-          placeholder="7200"
-          registration={register("target_time_seconds", {
-            required: "目標タイムを入力してください。",
-            min: {
-              value: 0,
-              message: "0以上の数値を入力してください。",
-            },
-          })}
-          error={errors.target_time_seconds?.message}
-        />
+          <FormField
+            label="体重(kg)"
+            type="number"
+            step="0.1"
+            placeholder="60.0"
+            registration={register("weight", {
+              required: "体重を入力してください。",
+              max: { value: 999.9, message: "1000kg未満で入力してください。" },
+              min: {
+                value: 0.1,
+                message: "0より大きい数値を入力してください。",
+              },
+            })}
+            error={errors.weight?.message}
+          />
 
-        <FormField
-          label="レース日"
-          type="date"
-          registration={register("race_date", {
-            required: "レース日を入力してください。",
-          })}
-          error={errors.race_date?.message}
-        />
+          <FormField
+            label="5km ベスト（任意・時:分:秒）"
+            type="text"
+            placeholder="0:25:00"
+            registration={register("best_5k_seconds", {
+              validate: (value) =>
+                value === "" ||
+                (durationSeconds(value) ?? 0) > 0 ||
+                "0:25:00の形式で、0より大きいタイムを入力してください。",
+            })}
+            error={errors.best_5k_seconds?.message}
+          />
 
+          <FormField
+            label="ハーフ ベスト（任意・時:分:秒）"
+            type="text"
+            placeholder="2:00:00"
+            registration={register("best_half_seconds", {
+              validate: (value) =>
+                value === "" ||
+                (durationSeconds(value) ?? 0) > 0 ||
+                "0:25:00の形式で、0より大きいタイムを入力してください。",
+            })}
+            error={errors.best_half_seconds?.message}
+          />
+
+          <FormField
+            label="フル ベスト（任意・時:分:秒）"
+            type="text"
+            placeholder="4:00:00"
+            registration={register("best_full_seconds", {
+              validate: (value) =>
+                value === "" ||
+                (durationSeconds(value) ?? 0) > 0 ||
+                "0:25:00の形式で、0より大きいタイムを入力してください。",
+            })}
+            error={errors.best_full_seconds?.message}
+          />
+
+          <div className="space-y-2">
+            <label
+              htmlFor="target_race_type"
+              className="block text-sm font-medium"
+            >
+              目標レース
+            </label>
+            <select
+              id="target_race_type"
+              {...register("target_race_type", {
+                required: "目標レースを選択してください。",
+              })}
+              className="w-full rounded border px-3 py-2"
+            >
+              <option value="5k">5km</option>
+              <option value="half">ハーフ</option>
+              <option value="full">フル</option>
+            </select>
+            {errors.target_race_type?.message ? (
+              <p className="text-sm text-red-600">
+                {errors.target_race_type.message}
+              </p>
+            ) : null}
+          </div>
+
+          <FormField
+            label="目標タイム（時:分:秒）"
+            type="text"
+            placeholder="4:30:00"
+            registration={register("target_time_seconds", {
+              required: "目標タイムを入力してください。",
+              validate: (value) =>
+                (durationSeconds(value) ?? 0) > 0 ||
+                "4:30:00の形式で、0より大きいタイムを入力してください。",
+            })}
+            error={errors.target_time_seconds?.message}
+          />
+
+          <FormField
+            label="レース日"
+            type="date"
+            registration={register("race_date", {
+              required: "レース日を入力してください。",
+              validate: (value) =>
+                value >= trainingToday() ||
+                "今日以降の日付を指定してください。",
+            })}
+            error={errors.race_date?.message}
+          />
+        </fieldset>
+        {errors.root?.message && (
+          <p role="alert" className="text-red-700">
+            {errors.root.message}
+          </p>
+        )}
         <div className="flex gap-4">
           <button
             type="submit"
@@ -202,7 +231,10 @@ export function ProfileEditForm({ initialProfile }: Props) {
           >
             {isSubmitting ? "保存中..." : "保存"}
           </button>
-          <Link href="/profile" className="rounded border px-4 py-2">
+          <Link
+            href={initialProfile ? "/profile" : "/"}
+            className="rounded border px-4 py-2"
+          >
             戻る
           </Link>
         </div>
@@ -213,7 +245,7 @@ export function ProfileEditForm({ initialProfile }: Props) {
 
 type FormFieldProps = {
   label: string;
-  type: "number" | "date";
+  type: "number" | "date" | "text";
   error?: string;
   placeholder?: string;
   step?: string;
@@ -239,9 +271,19 @@ function FormField({
         step={step}
         placeholder={placeholder}
         {...registration}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${registration.name}-error` : undefined}
         className="w-full rounded border px-3 py-2"
       />
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? (
+        <p
+          id={`${registration.name}-error`}
+          role="alert"
+          className="text-sm text-red-700"
+        >
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

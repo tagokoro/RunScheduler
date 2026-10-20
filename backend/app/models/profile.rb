@@ -3,18 +3,18 @@ class Profile < ApplicationRecord
 
   TARGET_RACE_TYPES = %w[5k half full].freeze
 
-  validates :age, presence: true, numericality: { greater_than_or_equal_to: 0 }
-  validates :weight, presence: true, numericality: { greater_than: 0 }
-  validates :best_5k_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
-  validates :best_half_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
-  validates :best_full_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :age, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0, less_than_or_equal_to: 120 }
+  validates :weight, presence: true, numericality: { greater_than: 0, less_than: 1000 }
+  validates :best_5k_seconds, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+  validates :best_half_seconds, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+  validates :best_full_seconds, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validates :target_race_type,
     presence: true,
     inclusion: {
       in: TARGET_RACE_TYPES,
       message: "is not included in the list"
     }
-  validates :target_time_seconds, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :target_time_seconds, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :race_date, presence: true
   validate :is_valid_race_date
 

@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { trainingTypeLabel } from "@/lib/training";
 import { cn } from "@/lib/utils";
 import type { TrainingRecord } from "@/types/training-records";
 
@@ -31,18 +32,24 @@ export function TrainingRecordCard({
           <div>
             {isHighlighted ? (
               <>
-                <CardTitle>{record.training_type}</CardTitle>
+                <CardTitle>{trainingTypeLabel(record.training_type)}</CardTitle>
                 <CardDescription>{record.date}</CardDescription>
               </>
             ) : (
               <>
                 <CardTitle>{record.date}</CardTitle>
-                <CardDescription>{record.training_type}</CardDescription>
+                <CardDescription>
+                  {trainingTypeLabel(record.training_type)}
+                </CardDescription>
               </>
             )}
           </div>
           <Badge variant={isHighlighted ? "accent" : "default"}>
-            {record.completed ? "完了" : "未完了"}
+            {record.training_type === "rest"
+              ? "休養日"
+              : record.completed
+                ? "実施済み"
+                : "予定"}
           </Badge>
         </div>
       </CardHeader>
@@ -57,7 +64,7 @@ export function TrainingRecordCard({
                 : "border-t border-neutral-100",
             )}
           >
-            <dt className="text-neutral-500">距離</dt>
+            <dt className="text-neutral-500">予定の距離</dt>
             <dd>
               {record.distance_km === null ? "-" : `${record.distance_km} km`}
             </dd>
@@ -70,7 +77,7 @@ export function TrainingRecordCard({
                 : "border-t border-neutral-100",
             )}
           >
-            <dt className="text-neutral-500">時間</dt>
+            <dt className="text-neutral-500">予定の時間</dt>
             <dd>
               {record.duration_minutes === null
                 ? "-"
@@ -100,7 +107,29 @@ export function TrainingRecordCard({
             <dd className="text-right">{record.notes ?? "-"}</dd>
           </div>
         </dl>
-        {footer ? <div className="flex justify-end">{footer}</div> : null}
+        {record.completed && (
+          <div className="space-y-2 rounded-lg bg-blue-50 p-3">
+            <p className="font-medium">
+              実績: {record.actual_distance_km ?? record.distance_km ?? "-"} km
+              /{" "}
+              {record.actual_duration_minutes ?? record.duration_minutes ?? "-"}{" "}
+              分
+            </p>
+            {record.actual_distance_km == null && (
+              <p className="text-xs">
+                実績未入力のため予定値を表示しています。「実績を編集」で修正できます。
+              </p>
+            )}
+            {record.feedback && (
+              <p className="whitespace-pre-wrap break-words">
+                振り返り: {record.feedback}
+              </p>
+            )}
+          </div>
+        )}
+        {footer ? (
+          <div className="flex flex-wrap justify-end gap-2">{footer}</div>
+        ) : null}
       </CardContent>
     </Card>
   );

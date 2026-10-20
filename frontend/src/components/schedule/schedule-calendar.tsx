@@ -11,6 +11,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { formatDateString } from "@/lib/date";
+import { trainingTypeLabel } from "@/lib/training";
 import { cn } from "@/lib/utils";
 import type { TrainingRecord } from "@/types/training-records";
 
@@ -45,7 +46,7 @@ export function ScheduleCalendar({
       <DayPickerDayButton
         {...props}
         className={cn(
-          "flex min-h-20 w-full flex-col items-start justify-start gap-2 rounded-lg border border-neutral-200 p-2 text-left",
+          "flex min-h-16 sm:min-h-20 w-full flex-col items-start justify-start gap-2 rounded-lg border border-neutral-200 p-1 text-left sm:p-2",
           props.modifiers.selected && "border-orange-400 bg-orange-50",
           !props.modifiers.selected &&
             formatDateString(props.day.date) === todayDateString &&
@@ -68,7 +69,7 @@ export function ScheduleCalendar({
           ) : null}
         </div>
         <span className="text-xs text-neutral-600">
-          {record?.training_type ?? ""}
+          {record ? trainingTypeLabel(record.training_type) : ""}
         </span>
       </DayPickerDayButton>
     );
@@ -81,6 +82,7 @@ export function ScheduleCalendar({
           type="button"
           variant="outline"
           size="icon-sm"
+          aria-label="前の月"
           onClick={() =>
             onMonthChange(
               new Date(month.getFullYear(), month.getMonth() - 1, 1),
@@ -100,6 +102,7 @@ export function ScheduleCalendar({
           type="button"
           variant="outline"
           size="icon-sm"
+          aria-label="次の月"
           onClick={() =>
             onMonthChange(
               new Date(month.getFullYear(), month.getMonth() + 1, 1),
@@ -145,7 +148,10 @@ export function ScheduleCalendar({
             "text-center text-sm text-neutral-500",
             defaultClassNames.weekday,
           ),
-          week: cn("mt-2 grid grid-cols-7 gap-2", defaultClassNames.week),
+          week: cn(
+            "mt-2 grid grid-cols-7 gap-1 sm:gap-2",
+            defaultClassNames.week,
+          ),
           day: cn("w-full", defaultClassNames.day),
           hidden: cn("invisible", defaultClassNames.hidden),
           outside: cn("text-neutral-300 opacity-50", defaultClassNames.outside),

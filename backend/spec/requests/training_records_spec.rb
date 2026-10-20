@@ -65,6 +65,8 @@ RSpec.describe "TrainingRecords API", type: :request do
                        duration_minutes: { type: :integer, nullable: true },
                        pace: { type: :string, nullable: true },
                        completed: { type: :boolean },
+                       actual_distance_km: { type: :number, nullable: true },
+                       actual_duration_minutes: { type: :integer, nullable: true },
                        feedback: { type: :string, nullable: true },
                        notes: { type: :string, nullable: true }
                      },
@@ -106,7 +108,7 @@ RSpec.describe "TrainingRecords API", type: :request do
                 schema: {
                   type: :object,
                   properties: {
-                    days: { type: :integer, minimum: 1, example: 7 },
+                    days: { type: :integer, minimum: 1, maximum: 31, example: 7 },
                     training_days: {
                       type: :array,
                       items: {
@@ -170,6 +172,8 @@ RSpec.describe "TrainingRecords API", type: :request do
                        duration_minutes: { type: :integer, nullable: true },
                        pace: { type: :string, nullable: true },
                        completed: { type: :boolean },
+                       actual_distance_km: { type: :number, nullable: true },
+                       actual_duration_minutes: { type: :integer, nullable: true },
                        feedback: { type: :string, nullable: true },
                        notes: { type: :string, nullable: true }
                      },
@@ -258,6 +262,17 @@ RSpec.describe "TrainingRecords API", type: :request do
     end
 
     patch("update a training record") do
+      consumes "application/json"
+      parameter name: :activity, in: :body, schema: {
+        type: :object,
+        properties: {
+          completed: { type: :boolean },
+          actual_distance_km: { type: :number, nullable: true, minimum: 0, maximum: 999.99 },
+          actual_duration_minutes: { type: :integer, nullable: true, minimum: 1, maximum: 1440 },
+          feedback: { type: :string, maxLength: 2000 }
+        }
+      }
+      let(:activity) { { completed: true, actual_distance_km: 4.25, actual_duration_minutes: 28, feedback: "無理なく走れた" } }
       parameter name: "X-CSRF-Token", in: :header, required: true, schema: { type: :string }
       let(:"X-CSRF-Token") { @csrf_token }
       tags "TrainingRecords"
@@ -336,7 +351,9 @@ RSpec.describe "TrainingRecords API", type: :request do
                       duration_minutes: { type: :integer, nullable: true },
                       pace: { type: :string, nullable: true },
                       completed: { type: :boolean },
-                      feedback: { type: :string, nullable: true },
+                      actual_distance_km: { type: :number, nullable: true },
+                       actual_duration_minutes: { type: :integer, nullable: true },
+                       feedback: { type: :string, nullable: true },
                       notes: { type: :string, nullable: true }
                     },
                     required: %w[
