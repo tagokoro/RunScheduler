@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   has_one :profile
+  has_many :login_sessions, dependent: :delete_all
   has_many :training_records, dependent: :destroy
 
   class << self

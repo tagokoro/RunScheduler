@@ -95,6 +95,8 @@ RSpec.describe "TrainingRecords API", type: :request do
     end
 
     post("create training records") do
+      parameter name: "X-CSRF-Token", in: :header, required: true, schema: { type: :string }
+      let(:"X-CSRF-Token") { @csrf_token }
       tags "TrainingRecords"
       consumes "application/json"
       produces "application/json"
@@ -229,6 +231,8 @@ RSpec.describe "TrainingRecords API", type: :request do
   path "/training_records/{id}" do
     parameter name: :id, in: :path, type: :string
     delete("delete a training record") do
+      parameter name: "X-CSRF-Token", in: :header, required: true, schema: { type: :string }
+      let(:"X-CSRF-Token") { @csrf_token }
       tags "TrainingRecords"
       let!(:training_record) do
         TrainingRecord.create!(
@@ -254,6 +258,8 @@ RSpec.describe "TrainingRecords API", type: :request do
     end
 
     patch("update a training record") do
+      parameter name: "X-CSRF-Token", in: :header, required: true, schema: { type: :string }
+      let(:"X-CSRF-Token") { @csrf_token }
       tags "TrainingRecords"
       let!(:training_record) do
         TrainingRecord.create!(
@@ -446,7 +452,7 @@ RSpec.describe "TrainingRecords API", type: :request do
       )
     end
     it "deletes the specified training record" do
-      delete "/training_records/#{training_record.id}"
+      delete "/training_records/#{training_record.id}", headers: csrf_headers
       expect(response).to have_http_status(:no_content)
       expect(TrainingRecord.find_by(id: training_record.id)).to be_nil
     end
@@ -469,7 +475,7 @@ RSpec.describe "TrainingRecords API", type: :request do
     it "updates the specified training record" do
       patch "/training_records/#{training_record.id}", params: {
         completed: true
-      }
+      }, headers: csrf_headers
       expect(response).to have_http_status(:ok)
       body = JSON.parse(response.body)
       expect(body["training_record"]["id"]).to eq(training_record.id)

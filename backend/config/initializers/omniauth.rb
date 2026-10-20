@@ -1,5 +1,15 @@
-OmniAuth.config.allowed_request_methods = %i[get post]
-OmniAuth.config.silence_get_warning = true
+OmniAuth.config.allowed_request_methods = %i[post]
+
+# Use the same exact-origin policy for the OAuth form and authenticated APIs.
+class OAuthCsrfVerifier < OmniAuth::RailsCsrfProtection::TokenVerifier
+  private
+
+  def valid_request_origin?
+    WebSecurity.valid_origin?(request)
+  end
+end
+
+OmniAuth.config.request_validation_phase = OAuthCsrfVerifier.new
 
 Rails.application.config.middleware.use OmniAuth::Builder do
   provider :developer if Rails.env.development?

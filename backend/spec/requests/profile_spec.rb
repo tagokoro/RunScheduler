@@ -22,6 +22,8 @@ RSpec.describe "Profile API", type: :request do
   end
   path "/me/profile" do
     patch("update user profile") do
+      parameter name: "X-CSRF-Token", in: :header, required: true, schema: { type: :string }
+      let(:"X-CSRF-Token") { @csrf_token }
       tags "Profile"
       consumes "application/json"
 
