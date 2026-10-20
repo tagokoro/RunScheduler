@@ -32,8 +32,12 @@ export default function Header() {
   const handleLogout = async () => {
     setAuthError(null);
     try {
-      if (await logout()) setUser(null);
-      else setAuthError("ログアウトに失敗しました。");
+      if (await logout()) {
+        // Discard authenticated page data and the client router cache.
+        window.location.replace("/");
+      } else {
+        setAuthError("ログアウトに失敗しました。");
+      }
     } catch {
       setAuthError("ログアウトに失敗しました。");
     }

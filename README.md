@@ -98,7 +98,7 @@ Cookieには256ビットのランダムトークン、DBにはそのSHA-256ハ�
 3. OmniAuthがGoogleのコールバックで`state`を検証し、ログイン成功時にOAuth用セッションをリセットして新しい認証セッションを発行します。同じブラウザの旧認証セッションは失効します。
 4. 保護APIはリクエストごとにDBで期限と失効状態を確認します。有効期限は発行から30日間で、未認証・改ざん・期限切れ・失効済みのCookieは401になります。
 5. POST/PATCH/DELETEは`GET /csrf`で取得した`X-CSRF-Token`が必要です。Originが付いている場合は明示したフロントエンドのOriginだけを許可し、不正なトークンやOriginは403になります。
-6. `DELETE /logout`は対象セッションをDBで失効させ、Cookieを削除します。保存済みCookieを再送しても認証できません。他端末のセッションは維持されます。
+6. `DELETE /logout`は対象セッションをDBで失効させ、Cookieを削除します。成功後はフロントをトップへページ全体で再読み込みし、表示中のユーザーデータとクライアントのルーターキャッシュを破棄します。保存済みCookieを再送しても認証できません。他端末のセッションは維持されます。
 
 `_oauth_session`のCookieStoreはOAuthの`state`とCSRFトークン専用です（有効期限30分）。認証用Cookieは開発で`_run_session`、本番で`__Host-run_session`です。
 どちらも`HttpOnly`、`Path=/`、Domain指定なしで、本番は`Secure`を付けます。
@@ -144,20 +144,38 @@ CloudflareのDNSは設定済みです。追加DNS・Renderカスタムドメイ�
 この変更は未マージのPR #33のDBセッション実装を含みます。#33と二重にマージする必要はありません。
 環境変数の保存だけでは旧コードにプロキシ・CSRF・DBセッションの機能は追加されません。
 
-1. Googleの新callback URIを追加します。VercelとRenderの自動デプロイ設定を確認し、backend/frontendの切り替え中は短いメンテナンス時間を設けます。
-2. Vercelの上記Production変数を保存します。`NEXT_PUBLIC_*` とrewrite先はビルド時に確定するため、新コードでの再ビルドが必要です。旧mainの再デプロイはしません。Render変数は「Save only」で保存しておけます。
-3. このPRのコードをmainへ反映し、Renderで `cd backend && bundle exec rails db:migrate` 相当を実行します。追加は `20261019000000_create_login_sessions.rb`（#33由来）です。既存データの削除・変換はありません。RenderのRoot Directoryが `backend` ならコマンドは `bundle exec rails db:migrate` です。
-4. DBマイグレーション完了後に新Railsを起動し、Render `/health` を確認します。RenderのFreeプラン等でShell/Pre-deploy commandを使えない場合は、接続可能な管理環境から同じコード・本番DB・Rails鍵を使って実行してください。Dockerfileに自動マイグレーションはありません。
-5. 新コードとProduction変数でVercelをビルド・デプロイし、`https://runplan.tagokoro.dev/api/health` がJSONで200になることを確認します。Renderがまだ旧コードならログイン検証へ進みません。
-6. 下記の本番検証を行います。既存ユーザーは再ログインが必要です。古いRenderホストのCookieは移行しません。
+1. Googleの新callback URIと環境変数を確認します。初回切り替え中は短いメンテナンス時間を設けます。Vercelの本番ビルドは下記のIgnored Build Stepで一時待機させ、Renderより先に切り替わらないようにします（設定保存済み）。Previewは通常どおりビルドします。
+2. このPRをmainへマージします。RenderはOn Commitでデプロイします。Root Directoryは `backend`、Docker Commandは `./bin/docker-entrypoint ./bin/rails server -b 0.0.0.0` です。Dockerfileの既定CMDも同じに揃えているため、手動のコマンド上書きがなくても同じ起動順になります。`rails server`単独に上書きするとDB準備を迂回するため、この起動経路を維持してください。
+3. 起動時に `bin/docker-entrypoint` が `./bin/rails db:prepare` を実行します。DBが既存なら未適用マイグレーションを適用し、新規ならスキーマを準備します。成功してから `exec` でRailsを起動します。失敗時はスクリプトが終了し、Railsはリクエストを受け付けません。FreeプランでのShellや有料のPre-deploy commandは不要です。
+4. Renderの稼働コミットが対象のmainコミットであること、DB準備が成功してからPumaが起動したことをログで確認し、Render `/health` の200を確認します。追加マイグレーションは `20261019000000_create_login_sessions.rb`（#33由来）です。既存データの削除・変換はありません。起動失敗時はログを確認して修正・再デプロイし、Vercelの待機を解除しません。
+5. 新Railsの反映後、VercelのIgnored Build Stepを元の既定設定へ戻し、対象のmainコミットをProductionへ手動デプロイします。`NEXT_PUBLIC_*` とrewrite先はビルド時に確定するため、保存済みProduction変数を使って新コードを再ビルドします。旧mainの再デプロイはしません。
+6. `https://runplan.tagokoro.dev/api/health` の200と、下記の本番検証を確認します。既存ユーザーは再ログインが必要です。古いRenderホストのCookieは移行しません。
+
+初回切り替え用のVercel設定（Project: `run-model` / Scope: `tagokoros-projects`）:
+
+```sh
+if [ "$VERCEL_ENV" = "production" ]; then exit 0; else exit 1; fi
+```
+
+Ignored Build Stepでは終了コード0がビルドのスキップ、1がビルドの継続です。この設定中はmainへのpushでVercel本番が更新されません。元の `commandForIgnoringBuildStep` は `null` でした。新Rails確認後は、認証済みVercel CLIで次のように解除できます。
+
+```bash
+cat > /tmp/runplan-restore-build.json <<'JSON'
+{"commandForIgnoringBuildStep":null}
+JSON
+vercel api /v9/projects/run-model --scope tagokoros-projects \
+  -X PATCH --input /tmp/runplan-restore-build.json --silent
+```
+
+設定の解除だけでは、すでにスキップされたコミットのデプロイは開始しません。解除後に対象mainコミットのProductionデプロイを実行してください。
 
 ロールバックは対応するbackend/frontendを一緒に戻します。新テーブルは残せますが、旧認証へ戻すと#33で解消したCookie再利用の問題も戻るため、原則は修正して前進します。
 期限切れ・失効済みレコードは `LoginSession.where("expires_at <= ? OR revoked_at IS NOT NULL", Time.current).delete_all` で定期削除できます。
 
 ### 作業時点の反映状況（2026-10-20）
 
-- Vercel: `NEXT_PUBLIC_API_BASE_URL` を新入口へ更新済み。既存のProduction/Preview共通変数の型を維持して更新しました。`API_UPSTREAM_ORIGIN` はProductionに追加済み。設定保存後の本番ビルドは未実施です。
-- Render: `FRONTEND_URL` は既に正しい値でした。`SESSION_SAME_SITE=lax` と `GOOGLE_OAUTH_CALLBACK_URL` を追加し、Save onlyで保存済み。新コードのデプロイ・本番マイグレーションは未実施です。
+- Vercel: `NEXT_PUBLIC_API_BASE_URL` を新入口へ更新済み。既存のProduction/Preview共通変数の型を維持して更新しました。`API_UPSTREAM_ORIGIN` はProductionに追加済み。設定保存後の本番ビルドは未実施です。初回切り替え用にProductionだけをスキップするIgnored Build Stepを設定済み（従来値null）。新Rails確認後に上記手順で解除します。
+- Render: `FRONTEND_URL` は既に正しい値でした。`SESSION_SAME_SITE=lax` と `GOOGLE_OAUTH_CALLBACK_URL` を追加し、Save onlyで保存済み。新コードのデプロイ・本番マイグレーションは未実施です。Docker Commandが起動時db:prepareを通る設定であることも確認済みです。
 - Google: Rails credentialsのclient IDと一致する `RunScheduler-web-20261018` に本番・開発用の新callback URIを追加し、再表示で保存を確認済み。旧URIは維持しています。Google側の設定伝播には時間がかかる場合があります。
 - 稼働コード: Vercel/Renderともmainの `5d54e72`。確認時は新ドメイン `/api/health` が404、Render `/health` が200でした。このPRのマージ・反映後に本番の実ログイン、SSR、更新API、Cookie属性、ログアウト後の再送拒否を検証してください。
 
@@ -180,6 +198,9 @@ pnpm build
 `test:proxy` はNextを一時ポートで起動し、模擬RailsとのGET/POST/PATCH/DELETE、本文・クエリ・CSRFヘッダー・複数Set-Cookie・OAuthの302・SSRでのCookie転送を確認します。
 RSpecはDBセッション失効、CSRF欠落/不正値/不正Origin、state不正、公開callbackとコード交換のredirect_uri一致、転送Host偽装、キャッシュ禁止を検証します。
 模擬GoogleのテストはGoogleとの実ログインを保証しません。
+
+起動順は `spec/deployment/docker_entrypoint_spec.rb` でDB準備成功後の起動、失敗時の起動中断、管理コマンドでDB準備を行わないことを検証します。ローカルの実Railsと一時DBでも、未適用のlogin_sessionsマイグレーションがPumaの待受開始前に完了すること、再起動の冪等性、DB接続失敗時に待受しないことを確認済みです。
+ログアウトはChromeで模擬Googleログイン→認証付き予定画面→SignOutを操作し、トップへページ全体が再読み込みされ、個人データが消えることを確認済みです。
 
 本番ではDevToolsのNetwork/Applicationを使い、以下を確認します。
 
