@@ -126,7 +126,7 @@ paths:
       - Sessions
       responses:
         '200':
-          description: 'CSRF token returned (send cookies with credentials: include)'
+          description: CSRF token returned for same-origin requests
           content:
             application/json:
               schema:

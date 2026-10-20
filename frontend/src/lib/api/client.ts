@@ -2,7 +2,6 @@ type ApiFetchOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   headers?: HeadersInit;
   body?: BodyInit;
-  cache?: RequestCache;
   cookieHeader?: string;
 };
 

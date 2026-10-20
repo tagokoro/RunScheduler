@@ -130,18 +130,18 @@ RSpec.describe "Session security", type: :request do
     expect(header).to include("path=/", "secure", "httponly", "samesite=lax", "max-age=0")
   end
 
-  it "allows credentialed requests from the configured frontend" do
+  it "accepts the configured frontend Origin without CORS response headers" do
     sign_in_with_google(user)
     delete "/logout", headers: csrf_headers.merge("Origin" => "http://localhost:3001")
     expect(response).to have_http_status(:no_content)
-    expect(response.headers["Access-Control-Allow-Origin"]).to eq("http://localhost:3001")
-    expect(response.headers["Access-Control-Allow-Credentials"]).to eq("true")
+    expect(response.headers["Access-Control-Allow-Origin"]).to be_nil
+    expect(response.headers["Access-Control-Allow-Credentials"]).to be_nil
   end
 
   it "does not expose CSRF tokens to untrusted origins or caches" do
     get "/csrf", headers: { "Origin" => "https://attacker.example" }
     expect(response.headers["Access-Control-Allow-Origin"]).to be_nil
-    expect(response.headers["Cache-Control"]).to eq("no-store")
+    expect(response.headers["Cache-Control"]).to include("no-store")
   end
 
   it "requires a CSRF-protected POST to start OAuth" do

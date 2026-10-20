@@ -4,7 +4,6 @@ class SessionsController < ApplicationController
   skip_before_action :check_logged_in, only: [ :create, :csrf, :failure ]
 
   def csrf
-    response.headers["Cache-Control"] = "no-store"
     render json: { csrf_token: form_authenticity_token }
   end
 

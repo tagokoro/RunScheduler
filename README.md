@@ -93,7 +93,7 @@ Google OAuth / OmniAuthで本人確認し、認証セッションをPostgreSQL�
 RailsのDBセッションストアはOAuthの一時データもまとめて保存できますが、このアプリではユーザー・期限・失効を明示的に扱える専用テーブルを採用しました。
 Cookieには256ビットのランダムトークン、DBにはそのSHA-256ハッシュだけを保存します。
 
-1. フロントエンドがCookie付きで`GET /csrf`を呼び、RailsのCSRFトークンを取得します。応答は`Cache-Control: no-store`です。
+1. フロントエンドがCookie付きで`GET /csrf`を呼び、RailsのCSRFトークンを取得します。応答は`Cache-Control: private, no-store`です。
 2. `authenticity_token`付きのフォームを`POST /auth/google_oauth2`へ送信します。GETによるOAuth開始は無効です。
 3. OmniAuthがGoogleのコールバックで`state`を検証し、ログイン成功時にOAuth用セッションをリセットして新しい認証セッションを発行します。同じブラウザの旧認証セッションは失効します。
 4. 保護APIはリクエストごとにDBで期限と失効状態を確認します。有効期限は発行から30日間で、未認証・改ざん・期限切れ・失効済みのCookieは401になります。
@@ -125,6 +125,7 @@ Google client ID/secretは引き続きRails credentialsの `google.client_id` / 
 Renderの `CLIENT_ID` / `CLIENT_SECRET` だけを書き換えてもこの実装には反映されません。
 CloudflareのDNSは設定済みです。追加DNS・Renderカスタムドメインは不要です。
 
+- ブラウザのAPI通信は同一オリジンの `/api` 経由に限定し、RailsのCORSミドルウェアは使用しません。プロキシが転送するOriginは引き続きCSRF対策として検証します。RenderへのクロスオリジンFetchはサポートしません。
 - ブラウザのFetchは既定の `credentials: "same-origin"` を使うため、同一オリジンの `/api` へのCookie送信に `include` の指定は不要です。
 - ブラウザのCookieはrunplanホストに保存され、`Path=/` のためSSRページにも届きます。SSRは `cookies().toString()` を固定のAPI URLへ明示転送します。受信HostからAPI URLを生成しません。
 - 認証Cookie `__Host-run_session` とOAuth/CSRF用 `_oauth_session` は本番で `SameSite=Lax; Secure; HttpOnly; Path=/`、Domain指定なしです。DBによる期限・失効確認、OAuth state、CSRF検証を維持します。

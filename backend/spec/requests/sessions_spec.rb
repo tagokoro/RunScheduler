@@ -5,7 +5,7 @@ RSpec.describe "Sessions API", type: :request do
     get("Returns a CSRF token for OAuth forms and state-changing API requests") do
       tags "Sessions"
       produces "application/json"
-      response "200", "CSRF token returned (send cookies with credentials: include)" do
+      response "200", "CSRF token returned for same-origin requests" do
         schema type: :object,
                properties: { csrf_token: { type: :string } },
                required: [ "csrf_token" ]

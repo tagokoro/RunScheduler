@@ -36,7 +36,6 @@ export async function listTrainingRecords(
   cookieHeader?: string,
 ): Promise<TrainingRecord[] | null> {
   const response = await apiFetch("/training_records", {
-    cache: "no-store",
     cookieHeader,
   });
 
@@ -81,7 +80,6 @@ export async function listTrainingRecordStats(
   const response = await apiFetch(
     `/training_records/stats?group_by=${groupBy}`,
     {
-      cache: "no-store",
       cookieHeader,
     },
   );
