@@ -76,7 +76,7 @@ export function TrainingRecordEditor({ record, onSaved }: Props) {
         setOpen(nextOpen);
       }}
     >
-      <DialogTrigger render={<Button className="min-h-11" />}>
+      <DialogTrigger render={<Button size="sm" />}>
         {record.completed ? "実績を編集" : "実績を記録"}
       </DialogTrigger>
       <DialogContent
