@@ -5,8 +5,8 @@ RSpec.describe "Concurrent weekly plan saves", type: :request do
 
   before do
     @user = create(:user)
-    create(:profile, user: @user, weekly_availability: Profile::WEEKDAYS.index_with { 30 }, race_date: Date.current + 100)
-    plans = (Date.current..Date.current + 6).map do |date|
+    create(:profile, user: @user, weekly_availability: Profile::WEEKDAYS.index_with { 30 }, race_date: Date.current + 6)
+    plans = (Date.current..Date.current + 5).map do |date|
       { "date" => date.to_s, "training_type" => "easy_run", "description" => "20分のラン", "duration_minutes" => 20,
         "distance_km" => 3, "pace" => nil, "notes" => "" }
     end

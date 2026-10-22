@@ -670,7 +670,7 @@ paths:
                 - stats
   "/weekly_plans/propose":
     post:
-      summary: Propose seven days without changing the database
+      summary: Propose through race day in resumable chunks without changing the database
       tags:
       - WeeklyPlans
       parameters:
@@ -688,6 +688,7 @@ paths:
                 type: object
                 required:
                 - proposal_token
+                - complete
                 - start_date
                 - end_date
                 - expires_at
@@ -696,6 +697,8 @@ paths:
                 properties:
                   proposal_token:
                     type: string
+                  complete:
+                    type: boolean
                   start_date:
                     type: string
                     format: date
@@ -709,8 +712,8 @@ paths:
                     type: integer
                   days:
                     type: array
-                    minItems: 7
-                    maxItems: 7
+                    minItems: 1
+                    maxItems: 366
                     items:
                       type: object
                       required:
@@ -724,6 +727,7 @@ paths:
                           format: date
                         available_minutes:
                           type: integer
+                          nullable: true
                           minimum: 0
                           maximum: 1440
                         action:
@@ -740,6 +744,16 @@ paths:
           description: CSRF token or origin rejected
         '422':
           description: schedule incomplete or proposal exceeds the daily time limit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                proposal_token:
+                  type: string
+                  description: Omit to start; send the previous token to generate
+                    the next chunk. Save only when complete is true.
   "/weekly_plans/save":
     post:
       summary: Save a reviewed proposal atomically and idempotently

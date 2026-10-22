@@ -18,6 +18,7 @@ export default async function Home() {
     <HomeClient
       initialRecords={records ?? []}
       hasProfile={profile !== null}
+      raceDate={profile?.race_date ?? null}
       scheduleConfigured={WEEKDAYS.every(
         (day) => profile?.weekly_availability?.[day.id] != null,
       )}

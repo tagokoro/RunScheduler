@@ -3,6 +3,7 @@ type ApiFetchOptions = {
   headers?: HeadersInit;
   body?: BodyInit;
   cookieHeader?: string;
+  signal?: AbortSignal;
 };
 
 export async function apiErrorMessage(response: Response, fallback: string) {
@@ -35,7 +36,7 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}) {
   const headers = new Headers(options.headers);
   if (options.cookieHeader) headers.set("Cookie", options.cookieHeader);
   if (options.method && options.method !== "GET") {
-    headers.set("X-CSRF-Token", await getCsrfToken());
+    headers.set("X-CSRF-Token", await getCsrfToken(options.signal));
   }
 
   return fetch(apiUrl(path), {
@@ -43,12 +44,14 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}) {
     headers,
     body: options.body,
     cache: "no-store",
+    signal: options.signal,
   });
 }
 
-export async function getCsrfToken(): Promise<string> {
+export async function getCsrfToken(signal?: AbortSignal): Promise<string> {
   const response = await fetch(apiUrl("/csrf"), {
     cache: "no-store",
+    signal,
   });
   if (!response.ok) throw new Error("CSRFトークンの取得に失敗しました。");
   const data: unknown = await response.json();

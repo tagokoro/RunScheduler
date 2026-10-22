@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { WeeklyScheduleFields } from "@/components/weekly-schedule-fields";
 import type { WeeklyAvailability } from "@/types/weekly-plan";
+import { WEEKDAYS } from "@/types/training-records";
 import { useEffect, useState } from "react";
 import { type UseFormRegisterReturn, useForm } from "react-hook-form";
 
@@ -40,6 +41,7 @@ export function ProfileEditForm({ initialProfile }: Props) {
     initialProfile?.weekly_availability ?? {},
   );
   const router = useRouter();
+  const unsetDays = WEEKDAYS.filter((day) => schedule[day.id] == null);
   const { showToast } = useToast();
   const {
     register,
@@ -243,13 +245,24 @@ export function ProfileEditForm({ initialProfile }: Props) {
             {errors.root.message}
           </p>
         )}
+        <div className="space-y-2 rounded-lg bg-blue-50 p-4 text-sm">
+          <p>
+            このボタンはプロフィールを保存します。練習予定は、保存後にホームの「大会までの予定を提案」から作成し、内容を確認して保存します。
+          </p>
+          {unsetDays.length > 0 && (
+            <p role="status">
+              未設定: {unsetDays.map((day) => day.label).join("・")}。
+              予定を提案するには7曜日すべての設定が必要です。練習しない曜日は「休み」を選んでください。未設定のままでもプロフィールは保存できます。
+            </p>
+          )}
+        </div>
         <div className="flex gap-4">
           <button
             type="submit"
             disabled={isSubmitting}
             className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-60"
           >
-            {isSubmitting ? "保存中..." : "保存"}
+            {isSubmitting ? "保存中..." : "プロフィールを保存"}
           </button>
           <Link
             href={initialProfile ? "/profile" : "/"}

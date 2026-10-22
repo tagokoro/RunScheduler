@@ -26,10 +26,12 @@ export function HomeClient({
   initialRecords,
   hasProfile,
   scheduleConfigured,
+  raceDate,
 }: {
   initialRecords: TrainingRecord[];
   hasProfile: boolean;
   scheduleConfigured: boolean;
+  raceDate: string | null;
 }) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -142,6 +144,7 @@ export function HomeClient({
         </div>
         <WeeklyPlanDialog
           configured={hasProfile && scheduleConfigured}
+          raceDate={raceDate}
           onSaved={(saved, startDate, endDate) => {
             setTrainingRecords((current) =>
               [
@@ -152,14 +155,14 @@ export function HomeClient({
               ].sort((a, b) => a.date.localeCompare(b.date)),
             );
             router.refresh();
-            showToast("確認した1週間の予定を保存しました。", "success");
+            showToast("大会までの予定を保存しました。", "success");
           }}
         />
       </div>
 
       {trainingRecords.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center text-sm text-neutral-500">
-          まだ練習予定がありません。普段の練習スケジュールを登録し、「1週間の予定を提案」から確認して保存しましょう。
+          まだ練習予定がありません。普段の練習スケジュールを登録し、「大会までの予定を提案」から確認して保存しましょう。
         </div>
       ) : (
         <div className="flex flex-col gap-4">

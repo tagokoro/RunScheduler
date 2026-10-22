@@ -14,52 +14,42 @@ class WeeklyPlanService
     @user = user
   end
 
-  def propose
-    start_date = Date.current
-    dates = (start_date..start_date + 6).to_a
-    snapshot = user.with_lock do
-      profile = user.profile&.reload
-      raise Error, "プロフィールを登録してください。" unless profile
-      raise Error, "普段の練習スケジュールを7曜日すべて登録してください。" unless profile.schedule_configured?
-      raise Error, "少なくとも1曜日に練習できる時間を設定してください。" unless profile.weekly_availability.values.any?(&:positive?)
-      raise Error, "大会日を更新してから提案してください。" if profile.race_date < start_date
-      limits = dates.to_h { |date| [ date.to_s, profile.available_minutes(date) ] }
-      existing = records_for(dates).index_by { |record| record.date.to_s }
-      recent = user.training_records.where(completed: true, date: (start_date - 27)..start_date).order(:date).map do |record|
-        { date: record.date, training_type: record.training_type, distance_km: record.actual_distance_km || record.distance_km,
-          duration_minutes: record.actual_duration_minutes || record.duration_minutes, feedback: record.feedback.to_s.first(2000) }
-      end
-      { profile: profile.attributes, limits: limits, baseline: dates.to_h { |date| [ date.to_s, fingerprint(existing[date.to_s]) ] },
-        retained: existing.values.select(&:activity_recorded?).to_h { |record| [ record.date.to_s, record.api_attributes ] }, recent: recent }
-    end
+  MAX_DAYS = 366
+  CHUNK_DAYS = 28
+  MAX_TOKEN_BYTES = 2_000_000
 
-    result = ChatgptService.new.generate_training_records(
-      profile: Profile.new(snapshot[:profile]), days: 7,
-      training_days: Profile::WEEKDAYS.select { |day| snapshot[:profile]["weekly_availability"][day].positive? },
-      available_minutes_by_date: snapshot[:limits], recent_activities: snapshot[:recent], start_date: start_date
-    )
-    records = result.fetch("training_records")
-    validate_records!(records, snapshot[:limits])
-    payload = { "id" => SecureRandom.uuid, "user_id" => user.id, "start_date" => start_date.to_s, "end_date" => dates.last.to_s,
-      "profile_digest" => profile_digest(snapshot[:profile]), "baseline" => snapshot[:baseline], "limits" => snapshot[:limits], "records" => records }
-    token = verifier.generate(payload, purpose: "weekly-plan", expires_in: 1.hour)
-    raise Error, "提案内容が長すぎます。再提案してください。" if token.bytesize > 100_000
-    {
-      proposal_token: token, start_date: start_date, end_date: dates.last, expires_at: 1.hour.from_now.iso8601,
-      days: records.map do |record|
-        date = record.fetch("date")
-        retained = snapshot[:retained][date]
-        { date: date, available_minutes: snapshot[:limits][date], action: retained ? "retain" : (snapshot[:baseline][date] ? "replace" : "create"),
-          record: retained || record }
-      end,
-      recent_activity_count: snapshot[:recent].length
-    }
+  def propose(token = nil)
+    payload = token.present? ? verified_payload(token) : initial_payload
+    raise Error, "日付が変わりました。もう一度提案してください。" if Date.iso8601(payload.fetch("start_date")) < Date.current
+    unless profile_digest(user.profile.reload.attributes) == payload["profile_digest"]
+      raise Error, "プロフィールが変更されています。もう一度提案してください。"
+    end
+    profile = Profile.new(payload.fetch("profile"))
+    remaining = payload.fetch("limits").keys.drop(payload.fetch("records").length)
+    dates = remaining.first(CHUNK_DAYS)
+    training_dates = dates.reject { |date| date == payload.fetch("end_date") }
+    if training_dates.any?
+      result = ChatgptService.new.generate_training_records(
+        profile: profile, days: training_dates.length,
+        training_days: Profile::WEEKDAYS.select { |day| profile.weekly_availability[day].positive? },
+        available_minutes_by_date: payload.fetch("limits").slice(*training_dates),
+        recent_activities: payload.fetch("recent"), preceding_plans: payload.fetch("records").last(14),
+        start_date: Date.iso8601(training_dates.first)
+      )
+      records = result.fetch("training_records")
+      validate_records!(records, payload.fetch("limits").slice(*training_dates))
+      payload["records"].concat(records.sort_by { |record| record.fetch("date") })
+    end
+    if dates.include?(payload.fetch("end_date"))
+      payload["records"] << race_record(profile)
+    end
+    proposal_response(payload)
   end
 
   def commit(token)
-    payload = verifier.verified(token.to_s, purpose: "weekly-plan")
-    unless payload.is_a?(Hash) && payload["user_id"] == user.id
-      raise Error.new("提案が無効または期限切れです。もう一度提案してください。", status: :unprocessable_entity)
+    payload = verified_payload(token)
+    unless payload.fetch("records").length == payload.fetch("limits").length
+      raise Error, "大会までの提案が揃っていません。続きを生成してください。"
     end
     dates = Date.iso8601(payload.fetch("start_date"))..Date.iso8601(payload.fetch("end_date"))
     user.with_lock do
@@ -88,6 +78,61 @@ class WeeklyPlanService
 
   private
 
+  def initial_payload
+    start_date = Date.current
+    user.with_lock do
+      profile = user.profile&.reload
+      raise Error, "プロフィールを登録してください。" unless profile
+      raise Error, "普段の練習スケジュールを7曜日すべて登録してください。" unless profile.schedule_configured?
+      raise Error, "少なくとも1曜日に練習できる時間を設定してください。" unless profile.weekly_availability.values.any?(&:positive?)
+      raise Error, "大会日を更新してから提案してください。" if profile.race_date < start_date
+      raise Error, "大会日は今日から366日以内に設定してください。" if (profile.race_date - start_date).to_i >= MAX_DAYS
+      dates = (start_date..profile.race_date).to_a
+      existing = records_for(dates).index_by { |record| record.date.to_s }
+      recent = user.training_records.where(completed: true, date: (start_date - 27)..start_date).order(:date).map do |record|
+        { date: record.date, training_type: record.training_type, distance_km: record.actual_distance_km || record.distance_km,
+          duration_minutes: record.actual_duration_minutes || record.duration_minutes, feedback: record.feedback.to_s.first(2000) }
+      end
+      { "id" => SecureRandom.uuid, "user_id" => user.id, "start_date" => start_date.to_s, "end_date" => profile.race_date.to_s,
+        "expires_at" => 1.hour.from_now.iso8601, "profile" => profile.attributes, "profile_digest" => profile_digest(profile.attributes),
+        "limits" => dates.to_h { |date| [ date.to_s, date == profile.race_date ? nil : profile.available_minutes(date) ] },
+        "baseline" => dates.to_h { |date| [ date.to_s, fingerprint(existing[date.to_s]) ] },
+        "retained" => existing.values.select(&:activity_recorded?).to_h { |record| [ record.date.to_s, record.api_attributes ] },
+        "recent" => recent, "records" => [] }
+    end
+  end
+
+  def race_record(profile)
+    { "date" => profile.race_date.to_s, "training_type" => "race", "description" => "目標レース当日",
+      "duration_minutes" => (profile.target_time_seconds / 60.0).ceil,
+      "distance_km" => { "5k" => 5, "half" => 21.0975, "full" => 42.195 }.fetch(profile.target_race_type).round(2),
+      "pace" => nil, "notes" => "大会の予定です。所要時間は目標タイムで、普段の練習時間の上限は適用しません。" }
+  end
+
+  def proposal_response(payload)
+    token = verifier.generate(payload, purpose: "race-plan", expires_at: Time.iso8601(payload.fetch("expires_at")))
+    raise Error, "提案内容が長すぎます。再提案してください。" if token.bytesize > MAX_TOKEN_BYTES
+    {
+      proposal_token: token, start_date: payload.fetch("start_date"), end_date: payload.fetch("end_date"),
+      expires_at: payload.fetch("expires_at"), complete: payload.fetch("records").length == payload.fetch("limits").length,
+      days: payload.fetch("records").map do |record|
+        date = record.fetch("date")
+        retained = payload.fetch("retained")[date]
+        { date: date, available_minutes: payload.fetch("limits")[date],
+          action: retained ? "retain" : (payload.fetch("baseline")[date] ? "replace" : "create"), record: retained || record }
+      end,
+      recent_activity_count: payload.fetch("recent").length
+    }
+  end
+
+  def verified_payload(token)
+    payload = verifier.verified(token.to_s, purpose: "race-plan") if token.is_a?(String) && token.bytesize <= MAX_TOKEN_BYTES
+    unless payload.is_a?(Hash) && payload["user_id"] == user.id
+      raise Error, "提案が無効または期限切れです。もう一度提案してください。"
+    end
+    payload
+  end
+
   attr_reader :user
 
   def verifier
@@ -107,8 +152,8 @@ class WeeklyPlanService
   end
 
   def validate_records!(records, limits)
-    unless records.is_a?(Array) && records.length == 7 && records.map { |record| record["date"] }.sort == limits.keys.sort
-      raise Error, "7日間の提案を確認できませんでした。再提案してください。"
+    unless records.is_a?(Array) && records.all? { |record| record.is_a?(Hash) && record["date"].is_a?(String) } && records.length == limits.length && records.map { |record| record["date"] }.sort == limits.keys.sort
+      raise Error, "対象期間の提案を確認できませんでした。再提案してください。"
     end
     records.each do |record|
       limit = limits.fetch(record.fetch("date"))

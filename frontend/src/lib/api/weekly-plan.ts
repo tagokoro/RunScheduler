@@ -2,9 +2,15 @@ import { apiFetch, apiErrorMessage } from "./client";
 import type { WeeklyPlanProposal } from "@/types/weekly-plan";
 import type { TrainingRecord } from "@/types/training-records";
 
-export async function proposeWeeklyPlan(): Promise<WeeklyPlanProposal> {
+export async function proposeWeeklyPlan(
+  token?: string,
+  signal?: AbortSignal,
+): Promise<WeeklyPlanProposal> {
   const response = await apiFetch("/weekly_plans/propose", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(token ? { proposal_token: token } : {}),
+    signal,
   }).catch(() => {
     throw new Error(
       "通信に失敗しました。提案は保存されていません。もう一度お試しください。",

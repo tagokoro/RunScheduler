@@ -13,13 +13,14 @@ export type ProposedRecord = Pick<
 >;
 export type WeeklyPlanProposal = {
   proposal_token: string;
+  complete: boolean;
   start_date: string;
   end_date: string;
   expires_at: string;
   recent_activity_count: number;
   days: {
     date: string;
-    available_minutes: number;
+    available_minutes: number | null;
     action: "retain" | "replace" | "create";
     record: ProposedRecord;
   }[];

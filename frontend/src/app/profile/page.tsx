@@ -91,7 +91,7 @@ export default async function Page() {
         </dl>
         {WEEKDAYS.some(
           (day) => profile.weekly_availability?.[day.id] == null,
-        ) && <p>7曜日すべてを設定すると、1週間の予定を提案できます。</p>}
+        ) && <p>7曜日すべてを設定すると、大会までの予定を提案できます。</p>}
       </section>
     </main>
   );

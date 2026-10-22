@@ -4,10 +4,10 @@ RSpec.describe "Weekly plan proposals", type: :request do
   include ActiveSupport::Testing::TimeHelpers
   let(:user) { create(:user) }
   let(:schedule) { Profile::WEEKDAYS.index_with { |day| day == "sunday" ? 0 : 45 } }
-  let!(:profile) { create(:profile, user: user, weekly_availability: schedule, race_date: Date.current + 100) }
+  let!(:profile) { create(:profile, user: user, weekly_availability: schedule, race_date: Date.current + 6) }
   let(:ai) { instance_double(ChatgptService) }
   let(:plans) do
-    (Date.current..Date.current + 6).map do |date|
+    (Date.current...profile.race_date).map do |date|
       rest = profile.available_minutes(date).zero?
       { "date" => date.to_s, "training_type" => rest ? "rest" : "easy_run", "description" => rest ? "休養" : "無理のないラン",
         "distance_km" => rest ? nil : 3, "duration_minutes" => rest ? nil : 20, "pace" => nil,
@@ -32,17 +32,22 @@ RSpec.describe "Weekly plan proposals", type: :request do
   end
 
   path "/weekly_plans/propose" do
-    post "Propose seven days without changing the database" do
+    post "Propose through race day in resumable chunks without changing the database" do
       tags "WeeklyPlans"
+      consumes "application/json"
       produces "application/json"
+      parameter name: :payload, in: :body, required: false, schema: { type: :object, properties: {
+        proposal_token: { type: :string, description: "Omit to start; send the previous token to generate the next chunk. Save only when complete is true." }
+      } }
+      let(:payload) { {} }
       parameter name: "X-CSRF-Token", in: :header, required: true, schema: { type: :string }
       let(:"X-CSRF-Token") { @csrf_token }
       response "200", "proposal to review (expires after one hour)" do
-        schema type: :object, required: %w[proposal_token start_date end_date expires_at days recent_activity_count], properties: {
-          proposal_token: { type: :string }, start_date: { type: :string, format: :date }, end_date: { type: :string, format: :date },
+        schema type: :object, required: %w[proposal_token complete start_date end_date expires_at days recent_activity_count], properties: {
+          proposal_token: { type: :string }, complete: { type: :boolean }, start_date: { type: :string, format: :date }, end_date: { type: :string, format: :date },
           expires_at: { type: :string, format: :"date-time" }, recent_activity_count: { type: :integer },
-          days: { type: :array, minItems: 7, maxItems: 7, items: { type: :object, required: %w[date available_minutes action record], properties: {
-            date: { type: :string, format: :date }, available_minutes: { type: :integer, minimum: 0, maximum: 1440 },
+          days: { type: :array, minItems: 1, maxItems: 366, items: { type: :object, required: %w[date available_minutes action record], properties: {
+            date: { type: :string, format: :date }, available_minutes: { type: :integer, nullable: true, minimum: 0, maximum: 1440 },
             action: { type: :string, enum: %w[create replace retain] }, record: { "$ref" => "#/components/schemas/ProposedTrainingRecord" }
           } } }
         }
@@ -247,13 +252,103 @@ RSpec.describe "Weekly plan proposals", type: :request do
     expect(response).to have_http_status(:unauthorized)
   end
 
+  it "generates to race day in chunks, applies recurring limits, and saves only a complete proposal" do
+    profile.update!(race_date: Date.current + 64)
+    calls = []
+    allow(ai).to receive(:generate_training_records) do |**args|
+      calls << args
+      { "training_records" => args.fetch(:available_minutes_by_date).map do |date, limit|
+        { "date" => date, "training_type" => limit.zero? ? "rest" : "easy_run", "description" => "無理のない練習",
+          "duration_minutes" => limit.zero? ? nil : 20, "distance_km" => nil, "pace" => nil, "notes" => "" }
+      end }
+    end
+    proposal = propose
+    expect(proposal["complete"]).to be(false)
+    expect(proposal["days"].length).to eq(28)
+    expect(proposal["end_date"]).to eq(profile.race_date.to_s)
+    save(proposal["proposal_token"])
+    expect(response).to have_http_status(:unprocessable_entity)
+    expect(user.training_records.count).to eq(0)
+    while !proposal["complete"]
+      post "/weekly_plans/propose", params: { proposal_token: proposal["proposal_token"] }, headers: csrf_headers, as: :json
+      expect(response).to have_http_status(:ok)
+      proposal = JSON.parse(response.body)
+      expect(user.training_records.count).to eq(0)
+    end
+    expect(calls.map { |args| args[:days] }).to eq([ 28, 28, 8 ])
+    expect(calls.last[:preceding_plans].length).to eq(14)
+    expect(proposal["days"].map { |day| day["date"] }).to eq((Date.current..profile.race_date).map(&:to_s))
+    proposal["days"][0...-1].each do |day|
+      expect(day["available_minutes"]).to eq(profile.available_minutes(Date.iso8601(day["date"])))
+    end
+    expect(proposal["days"].last).to include("available_minutes" => nil, "record" => hash_including("training_type" => "race"))
+    save(proposal["proposal_token"])
+    expect(response).to have_http_status(:ok)
+    expect(user.training_records.count).to eq(65)
+    expect(user.training_records.maximum(:date)).to eq(profile.race_date)
+    save(proposal["proposal_token"])
+    expect(TrainingPlanCommit.where(user: user).count).to eq(1)
+  end
+
+  it "resumes after a failed chunk without changing records or extending the expiration" do
+    profile.update!(race_date: Date.current + 40)
+    calls = 0
+    allow(ai).to receive(:generate_training_records) do |**args|
+      calls += 1
+      raise ChatgptService::Error, "再試行してください。" if calls == 2
+      { "training_records" => args.fetch(:available_minutes_by_date).map do |date, _limit|
+        { "date" => date, "training_type" => "rest", "description" => "休養", "duration_minutes" => nil,
+          "distance_km" => nil, "pace" => nil, "notes" => "" }
+      end }
+    end
+    first = propose
+    token = first["proposal_token"]
+    post "/weekly_plans/propose", params: { proposal_token: token }, headers: csrf_headers, as: :json
+    expect(response).to have_http_status(:unprocessable_entity)
+    expect(user.training_records.count).to eq(0)
+    post "/weekly_plans/propose", params: { proposal_token: token }, headers: csrf_headers, as: :json
+    expect(response).to have_http_status(:ok)
+    result = JSON.parse(response.body)
+    expect(result["complete"]).to be(true)
+    expect(result["days"].length).to eq(41)
+    expect(result["expires_at"]).to eq(first["expires_at"])
+    expect(user.training_records.count).to eq(0)
+    expect(TrainingPlanCommit.count).to eq(0)
+    expect { WeeklyPlanService.new(create(:user)).propose(token) }.to raise_error(WeeklyPlanService::Error)
+    profile.update!(weight: 61)
+    post "/weekly_plans/propose", params: { proposal_token: token }, headers: csrf_headers, as: :json
+    expect(response).to have_http_status(:unprocessable_entity)
+  end
+
+  it "rejects invalid continuation tokens and oversized horizons without calling AI" do
+    expect(ai).not_to receive(:generate_training_records)
+    [ "invalid", {}, "", "x" * (WeeklyPlanService::MAX_TOKEN_BYTES + 1) ].each do |token|
+      post "/weekly_plans/propose", params: { proposal_token: token }, headers: csrf_headers, as: :json
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+    profile.update!(race_date: Date.current + 366)
+    post "/weekly_plans/propose", headers: csrf_headers, as: :json
+    expect(response).to have_http_status(:unprocessable_entity)
+  end
+
+  it "registers only the race event when the race is today without calling AI" do
+    profile.update!(race_date: Date.current)
+    expect(ai).not_to receive(:generate_training_records)
+    proposal = propose
+    expect(proposal["complete"]).to be(true)
+    expect(proposal["days"].length).to eq(1)
+    save(proposal["proposal_token"])
+    expect(response).to have_http_status(:ok)
+    expect(user.training_records.sole.training_type).to eq("race")
+  end
+
   it "passes only the runner's recent completed actuals and reflections to the AI" do
     user.training_records.create!(date: Date.current - 1, training_type: "easy_run", distance_km: 10, actual_distance_km: 3,
       duration_minutes: 60, actual_duration_minutes: 20, completed: true, feedback: "疲れた")
     user.training_records.create!(date: Date.current - 28, training_type: "easy_run", completed: true, feedback: "古い")
     user.training_records.create!(date: Date.current, training_type: "easy_run", completed: false)
     create(:user).training_records.create!(date: Date.current, training_type: "easy_run", completed: true)
-    expect(ai).to receive(:generate_training_records).with(hash_including(days: 7, recent_activities: [ hash_including(distance_km: 3, duration_minutes: 20, feedback: "疲れた") ]))
+    expect(ai).to receive(:generate_training_records).with(hash_including(days: 6, recent_activities: [ hash_including(distance_km: 3, duration_minutes: 20, feedback: "疲れた") ]))
     expect(propose["recent_activity_count"]).to eq(1)
   end
 end
