@@ -50,21 +50,21 @@ const GROUP_BY_OPTIONS: Array<{
 const distanceChartConfig = {
   total_distance_km: {
     label: "走行距離",
-    color: "#f97316",
+    color: "#2563eb",
   },
 } satisfies ChartConfig;
 
 const durationChartConfig = {
   total_duration_minutes: {
     label: "走行時間",
-    color: "#fb923c",
+    color: "#0d9488",
   },
 } satisfies ChartConfig;
 
 const trainingCountChartConfig = {
   training_count: {
     label: "実施回数",
-    color: "#fdba74",
+    color: "#6366f1",
   },
 } satisfies ChartConfig;
 
@@ -142,7 +142,7 @@ export function StatisticsClient({
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 p-6">
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <section className="space-y-3">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900">
@@ -189,7 +189,7 @@ export function StatisticsClient({
         <Card>
           <CardHeader>
             <CardDescription>合計走行距離</CardDescription>
-            <CardTitle>
+            <CardTitle className="text-2xl tabular-nums">
               {formatSummaryDistance(summary.totalDistanceKm)}
             </CardTitle>
           </CardHeader>
@@ -197,7 +197,7 @@ export function StatisticsClient({
         <Card>
           <CardHeader>
             <CardDescription>合計走行時間</CardDescription>
-            <CardTitle>
+            <CardTitle className="text-2xl tabular-nums">
               {formatSummaryDuration(summary.totalDurationMinutes)}
             </CardTitle>
           </CardHeader>
@@ -205,7 +205,9 @@ export function StatisticsClient({
         <Card>
           <CardHeader>
             <CardDescription>実施回数</CardDescription>
-            <CardTitle>{summary.totalTrainingCount} 回</CardTitle>
+            <CardTitle className="text-2xl tabular-nums">
+              {summary.totalTrainingCount} 回
+            </CardTitle>
           </CardHeader>
         </Card>
       </section>

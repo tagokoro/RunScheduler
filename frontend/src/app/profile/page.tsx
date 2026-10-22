@@ -22,7 +22,7 @@ export default async function Page() {
     );
 
   return (
-    <main className="space-y-6 px-6 py-10">
+    <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">プロフィール</h1>
         <Link href="/profile/edit" className="text-blue-600 underline">
@@ -33,7 +33,7 @@ export default async function Page() {
       <Link href="/" className="inline-block text-blue-700 underline">
         練習予定の作成・記録へ進む
       </Link>
-      <dl className="grid max-w-2xl gap-3 sm:grid-cols-2">
+      <dl className="grid gap-x-8 gap-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 sm:grid-cols-2">
         <div>
           <dt className="text-sm text-gray-500">年齢</dt>
           <dd>{profile.age ?? "-"}</dd>
@@ -67,18 +67,21 @@ export default async function Page() {
           <dd>{profile.race_date}</dd>
         </div>
       </dl>
-      <section className="max-w-2xl space-y-3">
+      <section className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6">
         <h2 className="text-xl font-semibold">普段の練習スケジュール</h2>
         <p className="text-sm text-neutral-600">
           時間は利用可能な上限です。必ず消化する練習量ではありません。
         </p>
-        <dl className="grid grid-cols-2 gap-2">
+        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {WEEKDAYS.map((day) => {
             const minutes = profile.weekly_availability?.[day.id];
             return (
-              <div key={day.id} className="rounded-lg border p-3">
-                <dt>{day.label}</dt>
-                <dd>
+              <div
+                key={day.id}
+                className="space-y-1 rounded-xl bg-slate-50 p-4"
+              >
+                <dt className="text-xs text-slate-500">{day.label}</dt>
+                <dd className="text-sm font-semibold text-slate-800">
                   {minutes == null
                     ? "未設定"
                     : minutes === 0

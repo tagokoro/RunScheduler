@@ -102,7 +102,7 @@ export function ProfileEditForm({ initialProfile }: Props) {
   });
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-6 py-10">
+    <main className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-6 space-y-2">
         <h1 className="text-2xl font-semibold">
           {initialProfile
@@ -113,7 +113,11 @@ export function ProfileEditForm({ initialProfile }: Props) {
           大会と目標タイムを登録します。ベストタイムは任意です。未計測なら空欄のまま進められます。
         </p>
       </div>
-      <form onSubmit={onSubmit} className="space-y-6" noValidate>
+      <form
+        onSubmit={onSubmit}
+        className="space-y-6 rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-7"
+        noValidate
+      >
         <fieldset disabled={isSubmitting} className="space-y-6">
           <FormField
             label="年齢"
@@ -199,7 +203,7 @@ export function ProfileEditForm({ initialProfile }: Props) {
               {...register("target_race_type", {
                 required: "目標レースを選択してください。",
               })}
-              className="w-full rounded border px-3 py-2"
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2"
             >
               <option value="5k">5km</option>
               <option value="half">ハーフ</option>
@@ -260,13 +264,13 @@ export function ProfileEditForm({ initialProfile }: Props) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-60"
+            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
           >
             {isSubmitting ? "保存中..." : "プロフィールを保存"}
           </button>
           <Link
             href={initialProfile ? "/profile" : "/"}
-            className="rounded border px-4 py-2"
+            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm"
           >
             戻る
           </Link>
@@ -306,7 +310,7 @@ function FormField({
         {...registration}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${registration.name}-error` : undefined}
-        className="w-full rounded border px-3 py-2"
+        className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2"
       />
       {error ? (
         <p

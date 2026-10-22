@@ -1,5 +1,6 @@
 "use client";
 
+import { ja } from "date-fns/locale";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeftIcon, ArrowRightIcon } from "@hugeicons/core-free-icons";
 import {
@@ -10,7 +11,11 @@ import {
 } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
-import { formatDateString } from "@/lib/date";
+import {
+  formatDateString,
+  parseDateString,
+  formatJapaneseDate,
+} from "@/lib/date";
 import { trainingTypeLabel } from "@/lib/training";
 import { cn } from "@/lib/utils";
 import type { TrainingRecord } from "@/types/training-records";
@@ -46,30 +51,59 @@ export function ScheduleCalendar({
       <DayPickerDayButton
         {...props}
         className={cn(
-          "flex min-h-16 sm:min-h-20 w-full flex-col items-start justify-start gap-2 rounded-lg border border-neutral-200 p-1 text-left sm:p-2",
-          props.modifiers.selected && "border-orange-400 bg-orange-50",
+          "flex h-16 w-full cursor-pointer flex-col items-start justify-start gap-1.5 rounded-xl border border-slate-100 bg-slate-50/60 p-1.5 text-left transition-colors hover:border-blue-200 hover:bg-blue-50 sm:h-24 sm:p-2",
+          props.modifiers.selected &&
+            "border-blue-400 bg-blue-50 ring-1 ring-blue-400",
           !props.modifiers.selected &&
             formatDateString(props.day.date) === todayDateString &&
-            "border-orange-200",
+            "border-blue-200",
         )}
       >
         <div className="flex w-full items-center justify-between">
           <span className="text-sm font-medium">
             {props.day.date.getDate()}
           </span>
+          {record && (
+            <span
+              aria-hidden="true"
+              className={cn(
+                "size-1.5 shrink-0 rounded-full sm:hidden",
+                record.completed
+                  ? "bg-emerald-500"
+                  : record.training_type === "rest"
+                    ? "bg-slate-300"
+                    : "bg-blue-500",
+              )}
+            />
+          )}
           {record ? (
             <span
               className={cn(
-                "text-xs",
-                record.completed ? "text-orange-700" : "text-neutral-500",
+                "hidden text-xs sm:inline",
+                record.completed ? "text-emerald-700" : "text-neutral-500",
               )}
             >
               {record.completed ? "完了" : "予定"}
             </span>
           ) : null}
         </div>
-        <span className="text-xs text-neutral-600">
-          {record ? trainingTypeLabel(record.training_type) : ""}
+        <span className="line-clamp-2 break-words text-[10px] leading-4 text-slate-600 sm:text-xs">
+          {record && (
+            <>
+              <span className="hidden sm:inline">
+                {trainingTypeLabel(record.training_type)}
+              </span>
+              <span className="sm:hidden">
+                {record.training_type === "rest"
+                  ? "休養"
+                  : record.training_type === "race"
+                    ? "大会"
+                    : record.duration_minutes
+                      ? `${record.duration_minutes}分`
+                      : "練習"}
+              </span>
+            </>
+          )}
         </span>
       </DayPickerDayButton>
     );
@@ -77,47 +111,77 @@ export function ScheduleCalendar({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
         <Button
           type="button"
           variant="outline"
-          size="icon-sm"
-          aria-label="前の月"
-          onClick={() =>
-            onMonthChange(
-              new Date(month.getFullYear(), month.getMonth() - 1, 1),
-            )
-          }
+          size="sm"
+          onClick={() => {
+            const today = parseDateString(todayDateString);
+            onMonthChange(new Date(today.getFullYear(), today.getMonth(), 1));
+            onSelectDate(today);
+          }}
         >
-          <HugeiconsIcon
-            icon={ArrowLeftIcon}
-            strokeWidth={2}
-            className="size-4"
-          />
+          今日
         </Button>
-        <p className="min-w-28 text-center text-sm font-medium">
-          {getMonthTitle(month)}
-        </p>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-sm"
-          aria-label="次の月"
-          onClick={() =>
-            onMonthChange(
-              new Date(month.getFullYear(), month.getMonth() + 1, 1),
-            )
-          }
-        >
-          <HugeiconsIcon
-            icon={ArrowRightIcon}
-            strokeWidth={2}
-            className="size-4"
-          />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="前の月"
+            onClick={() =>
+              onMonthChange(
+                new Date(month.getFullYear(), month.getMonth() - 1, 1),
+              )
+            }
+          >
+            <HugeiconsIcon
+              icon={ArrowLeftIcon}
+              strokeWidth={2}
+              className="size-4"
+            />
+          </Button>
+          <p className="min-w-28 text-center text-sm font-semibold text-slate-900">
+            {getMonthTitle(month)}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            aria-label="次の月"
+            onClick={() =>
+              onMonthChange(
+                new Date(month.getFullYear(), month.getMonth() + 1, 1),
+              )
+            }
+          >
+            <HugeiconsIcon
+              icon={ArrowRightIcon}
+              strokeWidth={2}
+              className="size-4"
+            />
+          </Button>
+        </div>
       </div>
 
       <DayPicker
+        locale={ja}
+        labels={{
+          labelDayButton: (date, modifiers) => {
+            const record = recordsByDate.get(formatDateString(date));
+            return [
+              formatJapaneseDate(formatDateString(date)),
+              modifiers.today ? "今日" : "",
+              modifiers.selected ? "選択中" : "",
+              record
+                ? `${trainingTypeLabel(record.training_type)}、${record.completed ? "完了" : "予定"}`
+                : "",
+            ]
+              .filter(Boolean)
+              .join("、");
+          },
+        }}
         mode="single"
         month={month}
         selected={selectedDate}
@@ -145,7 +209,7 @@ export function ScheduleCalendar({
           ),
           weekdays: cn("grid grid-cols-7", defaultClassNames.weekdays),
           weekday: cn(
-            "text-center text-sm text-neutral-500",
+            "py-2 text-center text-xs font-medium text-slate-400",
             defaultClassNames.weekday,
           ),
           week: cn(

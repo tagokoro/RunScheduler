@@ -1,19 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #1f2937;
+  --background: #f6f8fb;
+  --foreground: #17243b;
   --surface: #ffffff;
   --surface-subtle: #f8fafc;
-  --border: #e5e7eb;
+  --border: #e2e8f0;
 
   --muted: #f3f4f6;
   --muted-foreground: #6b7280;
   --popover: #ffffff;
   --popover-foreground: #1f2937;
-  --ring: #93c5fd;
+  --ring: #60a5fa;
   --primary: #2563eb;
   --primary-foreground: #ffffff;
+  --input: #ffffff;
+  --secondary: #eaf0f8;
+  --secondary-foreground: #263d60;
+  --destructive: #b42336;
 }
 
 @theme inline {
@@ -30,6 +34,10 @@
   --color-ring: var(--ring);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
 
   --font-sans: var(--font-sans);
   --font-heading: var(--font-heading);
@@ -52,4 +60,19 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading), sans-serif;
+}
+
+::selection {
+  background: #dbeafe;
+}
+
+:where(a, button, input, select, summary):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+button,
+summary,
+select {
+  -webkit-tap-highlight-color: transparent;
 }

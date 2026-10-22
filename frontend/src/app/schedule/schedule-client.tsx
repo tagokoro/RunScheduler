@@ -7,13 +7,7 @@ import { useMemo, useState } from "react";
 
 import { ScheduleCalendar } from "@/components/schedule/schedule-calendar";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   formatDateString,
   trainingToday,
@@ -51,85 +45,100 @@ export function ScheduleClient({
   );
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 p-6">
-      <section className="space-y-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">
-            練習カレンダー
-          </h1>
-          <p className="text-sm text-neutral-500">
-            日付を選んで、その日のトレーニング内容を確認できます。
-          </p>
-        </div>
-
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader>
-            <CardDescription>
-              {selectedDate === todayDateString ? "今日" : "選択中の日付"}
-            </CardDescription>
-            <CardTitle>{formatJapaneseDate(selectedDate)}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-neutral-700">
-            {selectedRecord ? (
-              <>
-                <TrainingRecordCard
-                  record={selectedRecord}
-                  footer={
-                    <TrainingRecordEditor
-                      key={selectedRecord.id}
-                      record={selectedRecord}
-                      onSaved={(updated) =>
-                        setRecords((current) =>
-                          current.map((record) =>
-                            record.id === updated.id ? updated : record,
-                          ),
-                        )
-                      }
-                    />
-                  }
-                />
-                <div className="flex justify-end border-t border-orange-200 pt-3">
-                  <a
-                    href={buildGoogleCalendarUrl(selectedRecord)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "sm" }),
-                      "border-orange-200 bg-white text-orange-700 hover:bg-orange-100",
-                    )}
-                  >
-                    Google カレンダーに追加
-                  </a>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-3">
-                <p>この日の練習予定はありません。</p>
-                <Link href="/" className="text-blue-700 underline">
-                  ホームで練習予定を作成する
-                </Link>
-              </div>
+    <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+      <div className="space-y-2">
+        <p className="text-xs font-semibold tracking-widest text-blue-700">
+          予定・記録
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+          練習カレンダー
+        </h1>
+        <p className="text-sm leading-7 text-slate-500">
+          計画を見渡して、一日ずつ記録を積み重ねましょう。
+        </p>
+      </div>
+      <div className="grid items-start gap-5 lg:grid-cols-[1.3fr_1fr]">
+        <section aria-label="日付を選ぶ">
+          <Card>
+            <CardContent className="p-3 sm:p-5">
+              <ScheduleCalendar
+                month={visibleMonth}
+                selectedDate={selectedDateValue}
+                todayDateString={todayDateString}
+                recordsByDate={recordsByDate}
+                onMonthChange={setVisibleMonth}
+                onSelectDate={(date) => setSelectedDate(formatDateString(date))}
+              />
+              <p className="mt-4 border-t border-slate-100 pt-4 text-xs leading-6 text-slate-500">
+                日付を選ぶとメニューを確認できます。練習後は「実績を記録」から振り返りを残しましょう。
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+        <aside
+          className="space-y-3 lg:sticky lg:top-6"
+          aria-label="選択した日の練習"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+            <h2 className="text-base font-semibold text-slate-900">
+              {formatJapaneseDate(selectedDate)}
+            </h2>
+            {selectedDate === todayDateString && (
+              <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
+                今日
+              </span>
             )}
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-neutral-900">日付を選ぶ</h2>
-
-        <Card>
-          <CardContent className="p-2">
-            <ScheduleCalendar
-              month={visibleMonth}
-              selectedDate={selectedDateValue}
-              todayDateString={todayDateString}
-              recordsByDate={recordsByDate}
-              onMonthChange={setVisibleMonth}
-              onSelectDate={(date) => setSelectedDate(formatDateString(date))}
-            />
-          </CardContent>
-        </Card>
-      </section>
+          </div>
+          {selectedRecord ? (
+            <>
+              <TrainingRecordCard
+                record={selectedRecord}
+                footer={
+                  <TrainingRecordEditor
+                    key={selectedRecord.id}
+                    record={selectedRecord}
+                    onSaved={(updated) =>
+                      setRecords((current) =>
+                        current.map((record) =>
+                          record.id === updated.id ? updated : record,
+                        ),
+                      )
+                    }
+                  />
+                }
+              />
+              <a
+                href={buildGoogleCalendarUrl(selectedRecord)}
+                target="_blank"
+                rel="noreferrer"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "w-full text-slate-600",
+                )}
+              >
+                Google カレンダーに追加 <span aria-hidden="true">↗</span>
+              </a>
+            </>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>この日はまだ予定がありません</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm leading-7 text-slate-500">
+                <p>
+                  普段の練習スケジュールをもとに、大会までの計画を作成できます。
+                </p>
+                <Link
+                  href="/"
+                  className="inline-flex min-h-10 items-center font-medium text-blue-700 hover:underline"
+                >
+                  ホームで練習予定を作成する →
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+        </aside>
+      </div>
     </main>
   );
 }

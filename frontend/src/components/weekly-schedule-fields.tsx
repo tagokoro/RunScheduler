@@ -14,7 +14,7 @@ export function WeeklyScheduleFields({
 }) {
   const [customDays, setCustomDays] = useState<Weekday[]>([]);
   return (
-    <fieldset className="space-y-4 rounded-xl border p-4">
+    <fieldset className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
       <legend className="px-2 text-lg font-semibold">
         普段の練習スケジュール
       </legend>
@@ -37,7 +37,7 @@ export function WeeklyScheduleFields({
             <div className="flex flex-wrap items-center gap-2">
               <select
                 id={`weekly-${day.id}`}
-                className="min-h-10 rounded-lg border px-3"
+                className="min-h-11 rounded-xl border border-slate-200 bg-white px-3"
                 value={
                   custom ? "custom" : minutes == null ? "" : String(minutes)
                 }
@@ -74,7 +74,7 @@ export function WeeklyScheduleFields({
                     min={1}
                     max={1440}
                     step={1}
-                    className="min-h-10 w-24 rounded-lg border px-3"
+                    className="min-h-11 w-24 rounded-xl border border-slate-200 bg-white px-3"
                     value={minutes ?? ""}
                     onChange={(e) =>
                       onChange({
