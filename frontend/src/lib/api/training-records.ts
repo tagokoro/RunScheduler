@@ -1,6 +1,5 @@
 import { apiFetch, apiErrorMessage } from "./client";
 import type {
-  CreateTrainingRecordsRequest,
   TrainingRecord,
   TrainingRecordStatsGroupBy,
   TrainingRecordStatsResponse,
@@ -15,10 +14,6 @@ type TrainingRecordResponse = {
   training_record: TrainingRecord;
 };
 
-export type CreateTrainingRecordsResult = {
-  error: string | null;
-  trainingRecords: TrainingRecord[] | null;
-};
 export type UpdateTrainingRecordResult = {
   error: string | null;
   trainingRecord: TrainingRecord | null;
@@ -47,38 +42,6 @@ export async function listTrainingRecords(
 
   const data: TrainingRecordsResponse = await response.json();
   return data.training_records;
-}
-
-export async function createTrainingRecords(
-  payload: CreateTrainingRecordsRequest,
-): Promise<CreateTrainingRecordsResult> {
-  const response = await apiFetch("/training_records", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    return {
-      error:
-        response.status === 404
-          ? "プロフィールを登録してから予定を作成してください。"
-          : await apiErrorMessage(
-              response,
-              "予定を生成できませんでした。入力内容を確認して再試行してください。",
-            ),
-      trainingRecords: null,
-    };
-  }
-
-  const data: TrainingRecordsResponse = await response.json();
-
-  return {
-    error: null,
-    trainingRecords: data.training_records,
-  };
 }
 
 export async function listTrainingRecordStats(

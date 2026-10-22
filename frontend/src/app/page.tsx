@@ -3,6 +3,7 @@ import { LoginPrompt } from "@/components/auth/login-button";
 import { getCurrentUser } from "@/lib/api/session";
 import { getProfile } from "@/lib/api/profile";
 import { listTrainingRecords } from "@/lib/api/training-records";
+import { WEEKDAYS } from "@/types/training-records";
 import { HomeClient } from "./home-client";
 
 export default async function Home() {
@@ -14,6 +15,12 @@ export default async function Home() {
     listTrainingRecords(cookieHeader),
   ]);
   return (
-    <HomeClient initialRecords={records ?? []} hasProfile={profile !== null} />
+    <HomeClient
+      initialRecords={records ?? []}
+      hasProfile={profile !== null}
+      scheduleConfigured={WEEKDAYS.every(
+        (day) => profile?.weekly_availability?.[day.id] != null,
+      )}
+    />
   );
 }

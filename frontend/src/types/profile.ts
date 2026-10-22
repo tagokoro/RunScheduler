@@ -1,3 +1,4 @@
+import type { WeeklyAvailability } from "./weekly-plan";
 export type TargetRaceType = "5k" | "half" | "full";
 
 export type Profile = {
@@ -9,6 +10,7 @@ export type Profile = {
   target_race_type: TargetRaceType;
   target_time_seconds: number;
   race_date: string;
+  weekly_availability?: WeeklyAvailability;
 };
 
 export type UpdateProfilePayload = {
@@ -20,4 +22,5 @@ export type UpdateProfilePayload = {
   target_race_type: TargetRaceType;
   target_time_seconds: string;
   race_date: string;
+  weekly_availability?: WeeklyAvailability;
 };

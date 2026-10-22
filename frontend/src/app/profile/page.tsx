@@ -1,3 +1,4 @@
+import { WEEKDAYS } from "@/types/training-records";
 import Link from "next/link";
 import { LoginPrompt } from "@/components/auth/login-button";
 import { getCurrentUser } from "@/lib/api/session";
@@ -66,6 +67,32 @@ export default async function Page() {
           <dd>{profile.race_date}</dd>
         </div>
       </dl>
+      <section className="max-w-2xl space-y-3">
+        <h2 className="text-xl font-semibold">普段の練習スケジュール</h2>
+        <p className="text-sm text-neutral-600">
+          時間は利用可能な上限です。必ず消化する練習量ではありません。
+        </p>
+        <dl className="grid grid-cols-2 gap-2">
+          {WEEKDAYS.map((day) => {
+            const minutes = profile.weekly_availability?.[day.id];
+            return (
+              <div key={day.id} className="rounded-lg border p-3">
+                <dt>{day.label}</dt>
+                <dd>
+                  {minutes == null
+                    ? "未設定"
+                    : minutes === 0
+                      ? "休み"
+                      : `${minutes}分まで`}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+        {WEEKDAYS.some(
+          (day) => profile.weekly_availability?.[day.id] == null,
+        ) && <p>7曜日すべてを設定すると、1週間の予定を提案できます。</p>}
+      </section>
     </main>
   );
 }

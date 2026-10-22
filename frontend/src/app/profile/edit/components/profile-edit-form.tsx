@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { WeeklyScheduleFields } from "@/components/weekly-schedule-fields";
+import type { WeeklyAvailability } from "@/types/weekly-plan";
+import { useEffect, useState } from "react";
 import { type UseFormRegisterReturn, useForm } from "react-hook-form";
 
 import { durationInput, durationSeconds } from "@/lib/profile-time";
@@ -34,6 +36,9 @@ type Props = {
   initialProfile: Profile | null;
 };
 export function ProfileEditForm({ initialProfile }: Props) {
+  const [schedule, setSchedule] = useState<WeeklyAvailability>(
+    initialProfile?.weekly_availability ?? {},
+  );
   const router = useRouter();
   const { showToast } = useToast();
   const {
@@ -60,7 +65,19 @@ export function ProfileEditForm({ initialProfile }: Props) {
   }, [initialProfile, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
-    const payload = { ...values };
+    if (
+      !Object.values(schedule).every(
+        (minutes) =>
+          minutes == null ||
+          (Number.isInteger(minutes) && minutes >= 0 && minutes <= 1440),
+      )
+    ) {
+      setError("root", {
+        message: "練習時間は0〜1440分の整数で指定してください。",
+      });
+      return;
+    }
+    const payload = { ...values, weekly_availability: schedule };
     for (const key of [
       "best_5k_seconds",
       "best_half_seconds",
@@ -217,6 +234,9 @@ export function ProfileEditForm({ initialProfile }: Props) {
             })}
             error={errors.race_date?.message}
           />
+          <div id="weekly-schedule">
+            <WeeklyScheduleFields value={schedule} onChange={setSchedule} />
+          </div>
         </fieldset>
         {errors.root?.message && (
           <p role="alert" className="text-red-700">

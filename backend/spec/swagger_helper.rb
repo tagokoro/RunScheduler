@@ -17,7 +17,26 @@ RSpec.configure do |config|
       ],
       paths: {},
       components: {
-        schemas: {}
+        schemas: {
+          ProposedTrainingRecord: {
+            type: :object, required: %w[date training_type description duration_minutes distance_km pace notes],
+            properties: {
+              date: { type: :string, format: :date }, training_type: { type: :string }, description: { type: :string, nullable: true },
+              duration_minutes: { type: :integer, nullable: true }, distance_km: { type: :number, nullable: true },
+              pace: { type: :string, nullable: true }, notes: { type: :string, nullable: true }
+            }
+          },
+          SavedTrainingRecord: {
+            allOf: [ { "$ref" => "#/components/schemas/ProposedTrainingRecord" }, {
+              type: :object, required: %w[id completed actual_distance_km actual_duration_minutes feedback],
+              properties: {
+                id: { type: :string, format: :uuid }, completed: { type: :boolean },
+                actual_distance_km: { type: :number, nullable: true }, actual_duration_minutes: { type: :integer, nullable: true },
+                feedback: { type: :string, nullable: true }
+              }
+            } ]
+          }
+        }
       }
     }
   }
