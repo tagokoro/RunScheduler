@@ -1,4 +1,5 @@
 const LABELS: Record<string, string> = {
+  race: "大会",
   easy_run: "イージーラン",
   interval: "インターバル",
   tempo: "テンポ走",

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { RunningTrack } from "@/components/running-track";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -8,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatJapaneseDate } from "@/lib/date";
 import { trainingTypeLabel } from "@/lib/training";
 import { cn } from "@/lib/utils";
 import type { TrainingRecord } from "@/types/training-records";
@@ -26,25 +28,56 @@ export function TrainingRecordCard({
   const isHighlighted = emphasis === "highlighted";
 
   return (
-    <Card className={cn(isHighlighted && "border-orange-200 bg-orange-50")}>
-      <CardHeader>
+    <Card
+      className={cn(
+        "overflow-hidden",
+        isHighlighted
+          ? "training-feature relative h-full rounded-3xl border-0 bg-ink text-white shadow-[0_12px_32px_-20px_#172c35]"
+          : "border-t-[3px] border-t-[#d4dcc2]",
+      )}
+    >
+      {isHighlighted && (
+        <RunningTrack className="absolute -right-24 -top-16 w-[490px] text-white/10" />
+      )}
+      <CardHeader
+        className={cn("relative", isHighlighted && "p-6 pb-4 sm:p-8 sm:pb-4")}
+      >
+        {isHighlighted && (
+          <p className="mb-4 flex items-center gap-2 text-xs font-medium tracking-[0.15em] text-citrus">
+            <span className="size-1.5 rounded-full bg-citrus" />
+            TODAY’S TRAINING
+          </p>
+        )}
         <div className="flex items-start justify-between gap-3">
           <div>
             {isHighlighted ? (
               <>
-                <CardTitle>{trainingTypeLabel(record.training_type)}</CardTitle>
-                <CardDescription>{record.date}</CardDescription>
+                <CardTitle className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                  {trainingTypeLabel(record.training_type)}
+                </CardTitle>
+                <CardDescription className="mt-2 text-white/55">
+                  {formatJapaneseDate(record.date)}
+                </CardDescription>
               </>
             ) : (
               <>
-                <CardTitle>{record.date}</CardTitle>
+                <CardTitle>{formatJapaneseDate(record.date)}</CardTitle>
                 <CardDescription>
                   {trainingTypeLabel(record.training_type)}
                 </CardDescription>
               </>
             )}
           </div>
-          <Badge variant={isHighlighted ? "accent" : "default"}>
+          <Badge
+            variant={isHighlighted ? "accent" : "default"}
+            className={
+              isHighlighted
+                ? "bg-citrus text-ink"
+                : record.completed
+                  ? "bg-emerald-50 text-emerald-700"
+                  : undefined
+            }
+          >
             {record.training_type === "rest"
               ? "休養日"
               : record.completed
@@ -53,62 +86,114 @@ export function TrainingRecordCard({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm text-neutral-700">
-        <p>{record.description}</p>
-        <dl className="space-y-2">
-          <div
+      <CardContent
+        className={cn(
+          "relative space-y-4 text-sm",
+          isHighlighted
+            ? "px-6 pb-6 text-white sm:px-8 sm:pb-8"
+            : "text-slate-700",
+        )}
+      >
+        <p
+          className={cn(
+            "whitespace-pre-wrap break-words leading-7",
+            isHighlighted ? "max-w-md text-white/75" : "text-slate-700",
+          )}
+        >
+          {record.description}
+        </p>
+        {record.training_type !== "rest" && (
+          <dl
             className={cn(
-              "flex justify-between gap-4 pt-2",
+              "grid grid-cols-3 gap-2 rounded-2xl",
               isHighlighted
-                ? "border-t border-orange-200"
-                : "border-t border-neutral-100",
+                ? "border-y border-white/15 py-5"
+                : "bg-slate-50 p-3",
             )}
           >
-            <dt className="text-neutral-500">予定の距離</dt>
-            <dd>
-              {record.distance_km === null ? "-" : `${record.distance_km} km`}
-            </dd>
-          </div>
-          <div
+            <div>
+              <dt
+                className={cn(
+                  "text-xs",
+                  isHighlighted ? "text-white/55" : "text-slate-500",
+                )}
+              >
+                予定の距離
+              </dt>
+              <dd
+                className={cn(
+                  "mt-2 font-semibold tabular-nums",
+                  isHighlighted
+                    ? "text-2xl tracking-tight text-white sm:text-3xl"
+                    : "text-slate-900",
+                )}
+              >
+                {record.distance_km === null ? "—" : `${record.distance_km} km`}
+              </dd>
+            </div>
+            <div>
+              <dt
+                className={cn(
+                  "text-xs",
+                  isHighlighted ? "text-white/55" : "text-slate-500",
+                )}
+              >
+                予定の時間
+              </dt>
+              <dd
+                className={cn(
+                  "mt-2 font-semibold tabular-nums",
+                  isHighlighted
+                    ? "text-2xl tracking-tight text-white sm:text-3xl"
+                    : "text-slate-900",
+                )}
+              >
+                {record.duration_minutes === null
+                  ? "—"
+                  : `${record.duration_minutes} 分`}
+              </dd>
+            </div>
+            <div>
+              <dt
+                className={cn(
+                  "text-xs",
+                  isHighlighted ? "text-white/55" : "text-slate-500",
+                )}
+              >
+                ペース
+              </dt>
+              <dd
+                className={cn(
+                  "mt-2 break-words font-semibold tabular-nums",
+                  isHighlighted ? "text-white" : "text-slate-900",
+                )}
+              >
+                {record.pace || "—"}
+              </dd>
+            </div>
+          </dl>
+        )}
+        {record.notes && (
+          <p
             className={cn(
-              "flex justify-between gap-4 pt-2",
+              "whitespace-pre-wrap break-words border-l-2 pl-3 text-xs leading-6",
               isHighlighted
-                ? "border-t border-orange-200"
-                : "border-t border-neutral-100",
+                ? "border-citrus/50 text-white/60"
+                : "border-slate-200 text-slate-500",
             )}
           >
-            <dt className="text-neutral-500">予定の時間</dt>
-            <dd>
-              {record.duration_minutes === null
-                ? "-"
-                : `${record.duration_minutes} 分`}
-            </dd>
-          </div>
-          <div
-            className={cn(
-              "flex justify-between gap-4 pt-2",
-              isHighlighted
-                ? "border-t border-orange-200"
-                : "border-t border-neutral-100",
-            )}
-          >
-            <dt className="text-neutral-500">ペース</dt>
-            <dd>{record.pace ?? "-"}</dd>
-          </div>
-          <div
-            className={cn(
-              "flex justify-between gap-4 pt-2",
-              isHighlighted
-                ? "border-t border-orange-200"
-                : "border-t border-neutral-100",
-            )}
-          >
-            <dt className="text-neutral-500">メモ</dt>
-            <dd className="text-right">{record.notes ?? "-"}</dd>
-          </div>
-        </dl>
+            {record.notes}
+          </p>
+        )}
         {record.completed && (
-          <div className="space-y-2 rounded-lg bg-blue-50 p-3">
+          <div
+            className={cn(
+              "space-y-2 rounded-xl border p-3",
+              isHighlighted
+                ? "border-white/10 bg-white/5 text-citrus"
+                : "border-emerald-100 bg-emerald-50/60 text-emerald-900",
+            )}
+          >
             <p className="font-medium">
               実績: {record.actual_distance_km ?? record.distance_km ?? "-"} km
               /{" "}
@@ -128,7 +213,14 @@ export function TrainingRecordCard({
           </div>
         )}
         {footer ? (
-          <div className="flex flex-wrap justify-end gap-2">{footer}</div>
+          <div
+            className={cn(
+              "flex flex-wrap justify-end gap-2 border-t pt-4",
+              isHighlighted ? "border-white/15" : "border-slate-100",
+            )}
+          >
+            {footer}
+          </div>
         ) : null}
       </CardContent>
     </Card>

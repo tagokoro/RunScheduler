@@ -188,10 +188,15 @@ test(
         const html = await response.text();
         if (path === "/profile") assert.match(html, /37/);
       }
+      const selectedDay = await fetch(`${base}/schedule?date=2026-12-15`, {
+        headers: { Cookie: "session=ssr-user" },
+      });
+      assert.equal(selectedDay.status, 200);
+      assert.match(await selectedDay.text(), /2026年12月15日/);
       const publicHome = await fetch(`${base}/`, {
         headers: { Cookie: "session=logged-out" },
       });
-      assert.match(await publicHome.text(), /目標を登録/);
+      assert.match(await publicHome.text(), /大会までの練習/);
       const onboarding = await fetch(`${base}/`, {
         headers: { Cookie: "session=no-profile" },
       });

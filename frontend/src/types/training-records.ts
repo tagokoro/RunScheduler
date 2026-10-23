@@ -10,12 +10,6 @@ export const WEEKDAYS = [
 
 export type Weekday = (typeof WEEKDAYS)[number]["id"];
 
-export type CreateTrainingRecordsRequest = {
-  days: number;
-  training_days: Weekday[];
-  request_message?: string;
-};
-
 export type TrainingRecordStatsGroupBy = "day" | "week" | "month";
 
 export type TrainingRecordStat = {

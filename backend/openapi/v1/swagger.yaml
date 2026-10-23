@@ -76,6 +76,46 @@ paths:
                 race_date:
                   type: string
                   format: date
+                weekly_availability:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    monday:
+                      type: integer
+                      nullable: true
+                      minimum: 0
+                      maximum: 1440
+                    tuesday:
+                      type: integer
+                      nullable: true
+                      minimum: 0
+                      maximum: 1440
+                    wednesday:
+                      type: integer
+                      nullable: true
+                      minimum: 0
+                      maximum: 1440
+                    thursday:
+                      type: integer
+                      nullable: true
+                      minimum: 0
+                      maximum: 1440
+                    friday:
+                      type: integer
+                      nullable: true
+                      minimum: 0
+                      maximum: 1440
+                    saturday:
+                      type: integer
+                      nullable: true
+                      minimum: 0
+                      maximum: 1440
+                    sunday:
+                      type: integer
+                      nullable: true
+                      minimum: 0
+                      maximum: 1440
+                  description: 曜日ごとの利用可能な上限時間（分）。キーなし/nullは未設定、0は休み。
               required:
               - age
               - weight
@@ -135,6 +175,46 @@ paths:
                   race_date:
                     type: string
                     format: date
+                  weekly_availability:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      monday:
+                        type: integer
+                        nullable: true
+                        minimum: 0
+                        maximum: 1440
+                      tuesday:
+                        type: integer
+                        nullable: true
+                        minimum: 0
+                        maximum: 1440
+                      wednesday:
+                        type: integer
+                        nullable: true
+                        minimum: 0
+                        maximum: 1440
+                      thursday:
+                        type: integer
+                        nullable: true
+                        minimum: 0
+                        maximum: 1440
+                      friday:
+                        type: integer
+                        nullable: true
+                        minimum: 0
+                        maximum: 1440
+                      saturday:
+                        type: integer
+                        nullable: true
+                        minimum: 0
+                        maximum: 1440
+                      sunday:
+                        type: integer
+                        nullable: true
+                        minimum: 0
+                        maximum: 1440
+                    description: 曜日ごとの利用可能な上限時間（分）。キーなし/nullは未設定、0は休み。
                 required:
                 - age
                 - weight
@@ -588,5 +668,190 @@ paths:
                 required:
                 - group_by
                 - stats
+  "/weekly_plans/propose":
+    post:
+      summary: Propose through race day in resumable chunks without changing the database
+      tags:
+      - WeeklyPlans
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: proposal to review (expires after one hour)
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - proposal_token
+                - complete
+                - start_date
+                - end_date
+                - expires_at
+                - days
+                - recent_activity_count
+                properties:
+                  proposal_token:
+                    type: string
+                  complete:
+                    type: boolean
+                  start_date:
+                    type: string
+                    format: date
+                  end_date:
+                    type: string
+                    format: date
+                  expires_at:
+                    type: string
+                    format: date-time
+                  recent_activity_count:
+                    type: integer
+                  days:
+                    type: array
+                    minItems: 1
+                    maxItems: 366
+                    items:
+                      type: object
+                      required:
+                      - date
+                      - available_minutes
+                      - action
+                      - record
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                        available_minutes:
+                          type: integer
+                          nullable: true
+                          minimum: 0
+                          maximum: 1440
+                        action:
+                          type: string
+                          enum:
+                          - create
+                          - replace
+                          - retain
+                        record:
+                          "$ref": "#/components/schemas/ProposedTrainingRecord"
+        '401':
+          description: authentication required
+        '403':
+          description: CSRF token or origin rejected
+        '422':
+          description: schedule incomplete or proposal exceeds the daily time limit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                proposal_token:
+                  type: string
+                  description: Omit to start; send the previous token to generate
+                    the next chunk. Save only when complete is true.
+  "/weekly_plans/save":
+    post:
+      summary: Save a reviewed proposal atomically and idempotently
+      tags:
+      - WeeklyPlans
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: saved; repeated requests do not reapply the plan
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - training_records
+                properties:
+                  training_records:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/SavedTrainingRecord"
+        '401':
+          description: authentication required
+        '403':
+          description: CSRF token or origin rejected
+        '422':
+          description: invalid, expired or another user's proposal
+        '409':
+          description: profile, date or uncompleted plan changed; propose again
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - proposal_token
+              properties:
+                proposal_token:
+                  type: string
 components:
-  schemas: {}
+  schemas:
+    ProposedTrainingRecord:
+      type: object
+      required:
+      - date
+      - training_type
+      - description
+      - duration_minutes
+      - distance_km
+      - pace
+      - notes
+      properties:
+        date:
+          type: string
+          format: date
+        training_type:
+          type: string
+        description:
+          type: string
+          nullable: true
+        duration_minutes:
+          type: integer
+          nullable: true
+        distance_km:
+          type: number
+          nullable: true
+        pace:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+    SavedTrainingRecord:
+      allOf:
+      - "$ref": "#/components/schemas/ProposedTrainingRecord"
+      - type: object
+        required:
+        - id
+        - completed
+        - actual_distance_km
+        - actual_duration_minutes
+        - feedback
+        properties:
+          id:
+            type: string
+            format: uuid
+          completed:
+            type: boolean
+          actual_distance_km:
+            type: number
+            nullable: true
+          actual_duration_minutes:
+            type: integer
+            nullable: true
+          feedback:
+            type: string
+            nullable: true

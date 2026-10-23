@@ -13,6 +13,9 @@ Rails.application.routes.draw do
 
   get "/me/profile", to: "profiles#show"
   patch "/me/profile", to: "profiles#update"
+  post "/weekly_plans/propose", to: "weekly_plans#create"
+  post "/weekly_plans/save", to: "weekly_plans#save"
+
   get "/training_records", to: "training_records#index"
   post "/training_records", to: "training_records#create"
   get "/training_records/stats", to: "training_records#stats"
