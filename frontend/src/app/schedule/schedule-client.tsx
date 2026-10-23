@@ -20,18 +20,23 @@ import type { TrainingRecord } from "@/types/training-records";
 
 type ScheduleClientProps = {
   initialTrainingRecords: TrainingRecord[];
+  initialDate?: string;
 };
 
 export function ScheduleClient({
   initialTrainingRecords,
+  initialDate,
 }: ScheduleClientProps) {
   const [records, setRecords] = useState(initialTrainingRecords);
   const today = useMemo(() => parseDateString(trainingToday()), []);
   const todayDateString = useMemo(() => formatDateString(today), [today]);
-  const [visibleMonth, setVisibleMonth] = useState(
-    new Date(today.getFullYear(), today.getMonth(), 1),
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const selected = initialDate ? parseDateString(initialDate) : today;
+    return new Date(selected.getFullYear(), selected.getMonth(), 1);
+  });
+  const [selectedDate, setSelectedDate] = useState(
+    initialDate ?? todayDateString,
   );
-  const [selectedDate, setSelectedDate] = useState(todayDateString);
 
   const recordsByDate = useMemo(
     () => new Map(records.map((record) => [record.date, record] as const)),
@@ -45,9 +50,9 @@ export function ScheduleClient({
   );
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+    <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
       <div className="space-y-2">
-        <p className="text-xs font-semibold tracking-widest text-blue-700">
+        <p className="text-xs font-semibold tracking-widest text-primary">
           予定・記録
         </p>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
@@ -84,7 +89,7 @@ export function ScheduleClient({
               {formatJapaneseDate(selectedDate)}
             </h2>
             {selectedDate === todayDateString && (
-              <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
+              <span className="rounded-full bg-citrus px-2.5 py-1 text-xs font-medium text-primary">
                 今日
               </span>
             )}
@@ -130,7 +135,7 @@ export function ScheduleClient({
                 </p>
                 <Link
                   href="/"
-                  className="inline-flex min-h-10 items-center font-medium text-blue-700 hover:underline"
+                  className="inline-flex min-h-10 items-center font-medium text-primary hover:underline"
                 >
                   ホームで練習予定を作成する →
                 </Link>
