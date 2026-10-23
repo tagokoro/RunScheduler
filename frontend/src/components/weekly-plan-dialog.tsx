@@ -117,13 +117,13 @@ export function WeeklyPlanDialog({
           </DialogDescription>
         </DialogHeader>
         {!configured && (
-          <div className="space-y-3 rounded-lg bg-blue-50 p-4 text-sm">
+          <div className="space-y-3 rounded-lg bg-primary/5 p-4 text-sm">
             <p>
               提案を作成するには、目標・プロフィールと7曜日すべての練習時間の設定が必要です。練習しない曜日は「休み」を選んでください。
             </p>
             <Link
               href="/profile/edit#weekly-schedule"
-              className="text-blue-700 underline"
+              className="text-primary underline"
             >
               普段の練習スケジュールを設定する
             </Link>
@@ -212,7 +212,7 @@ export function WeeklyPlanDialog({
         {pending && (
           <p role="status">
             {pending === "propose"
-              ? "大会までの予定を28日分ずつ提案しています。期間に応じて数分かかる場合があります。"
+              ? "大会までの計画を作成しています。期間に応じて数分かかる場合があります。"
               : "予定を保存しています…"}
           </p>
         )}

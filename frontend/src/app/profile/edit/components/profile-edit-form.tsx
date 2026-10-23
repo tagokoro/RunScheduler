@@ -249,7 +249,7 @@ export function ProfileEditForm({ initialProfile }: Props) {
             {errors.root.message}
           </p>
         )}
-        <div className="space-y-2 rounded-lg bg-blue-50 p-4 text-sm">
+        <div className="space-y-2 rounded-lg bg-primary/5 p-4 text-sm">
           <p>
             このボタンはプロフィールを保存します。練習予定は、保存後にホームの「大会までの予定を提案」から作成し、内容を確認して保存します。
           </p>
@@ -264,7 +264,7 @@ export function ProfileEditForm({ initialProfile }: Props) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+            className="rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-60"
           >
             {isSubmitting ? "保存中..." : "プロフィールを保存"}
           </button>

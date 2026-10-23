@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f8fb;
-  --foreground: #17243b;
+  --background: #f5f4ef;
+  --foreground: #172c35;
   --surface: #ffffff;
   --surface-subtle: #f8fafc;
-  --border: #e2e8f0;
+  --border: #e5e6df;
 
   --muted: #f3f4f6;
   --muted-foreground: #6b7280;
   --popover: #ffffff;
   --popover-foreground: #1f2937;
-  --ring: #60a5fa;
-  --primary: #2563eb;
+  --ring: #f5896c;
+  --primary: #c64321;
   --primary-foreground: #ffffff;
   --input: #ffffff;
-  --secondary: #eaf0f8;
-  --secondary-foreground: #263d60;
+  --secondary: #eeeee6;
+  --secondary-foreground: #172c35;
   --destructive: #b42336;
 }
 
@@ -63,7 +63,7 @@ h6 {
 }
 
 ::selection {
-  background: #dbeafe;
+  background: #ffd2bd;
 }
 
 :where(a, button, input, select, summary):focus-visible {
@@ -75,4 +75,39 @@ button,
 summary,
 select {
   -webkit-tap-highlight-color: transparent;
+}
+
+@theme inline {
+  --color-ink: #172c35;
+  --color-ink-soft: #29434d;
+  --color-tangerine: #ff794f;
+  --color-citrus: #e5efab;
+}
+
+.dashboard-number {
+  font-family: var(--font-heading), sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.065em;
+  line-height: 1;
+}
+
+.training-feature {
+  background-image: radial-gradient(
+    ellipse at 95% 5%,
+    #315764 0,
+    transparent 62%
+  );
+}
+
+.week-tile {
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .week-tile:hover {
+    transform: translateY(-3px);
+  }
 }

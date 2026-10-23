@@ -146,13 +146,10 @@ export function StatisticsClient({
       <section className="space-y-3">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900">
-            練習の振り返り
+            練習の統計
           </h1>
         </div>
 
-        <p className="text-sm text-neutral-600">
-          完了した練習の実績を集計しています。休養日は回数に含みません。
-        </p>
         {error && (
           <p role="alert" className="text-red-700">
             {error}

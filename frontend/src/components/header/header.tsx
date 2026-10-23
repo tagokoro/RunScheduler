@@ -13,9 +13,9 @@ export default function Header() {
   const pathname = usePathname();
   const navClass = (href: string) =>
     cn(
-      "inline-flex min-h-10 items-center rounded-lg px-2 text-sm font-medium transition-colors sm:px-3 hover:bg-slate-100",
+      "inline-flex min-h-10 items-center rounded-lg px-2 text-sm font-medium transition-colors sm:px-3 hover:bg-black/5",
       (href === "/" ? pathname === href : pathname.startsWith(href))
-        ? "bg-blue-50 text-blue-700"
+        ? "bg-ink text-white hover:bg-ink-soft"
         : "text-slate-600",
     );
   const [user, setUser] = useState<CurrentUser | null>(null);
@@ -40,11 +40,11 @@ export default function Header() {
     }
   }, []);
   return (
-    <header className="relative w-full border-b border-slate-200/80 bg-white">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+    <header className="relative w-full border-b border-black/5 bg-background">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
         <Link
           href="/"
-          className="flex items-center gap-2.5 text-xl font-semibold tracking-tight text-slate-900"
+          className="flex items-center gap-2.5 text-2xl font-semibold tracking-tight text-ink"
         >
           <Image src="/icon.png" alt="" width={32} height={32} />
           RunAI
@@ -74,7 +74,7 @@ export default function Header() {
             }
             className={navClass("/statistics")}
           >
-            振り返り
+            統計
           </Link>
           {loading ? (
             <span role="status">確認中…</span>
@@ -94,7 +94,7 @@ export default function Header() {
               <button
                 type="button"
                 disabled={loggingOut}
-                className="absolute right-4 top-3 min-h-10 cursor-pointer rounded-lg px-3 text-xs sm:static text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-60"
+                className="absolute right-4 top-3 min-h-10 cursor-pointer rounded-lg px-3 text-xs sm:static text-slate-500 hover:bg-black/5 hover:text-slate-900 disabled:opacity-60"
                 onClick={async () => {
                   setLoggingOut(true);
                   try {

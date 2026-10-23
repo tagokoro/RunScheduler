@@ -51,12 +51,12 @@ export function ScheduleCalendar({
       <DayPickerDayButton
         {...props}
         className={cn(
-          "flex h-16 w-full cursor-pointer flex-col items-start justify-start gap-1.5 rounded-xl border border-slate-100 bg-slate-50/60 p-1.5 text-left transition-colors hover:border-blue-200 hover:bg-blue-50 sm:h-24 sm:p-2",
+          "flex h-16 w-full cursor-pointer flex-col items-start justify-start gap-1.5 rounded-xl border border-slate-100 bg-slate-50/60 p-1.5 text-left transition-colors hover:border-primary/20 hover:bg-primary/5 sm:h-24 sm:p-2",
           props.modifiers.selected &&
-            "border-blue-400 bg-blue-50 ring-1 ring-blue-400",
+            "border-primary/50 bg-[#fff1e8] ring-1 ring-primary/30",
           !props.modifiers.selected &&
             formatDateString(props.day.date) === todayDateString &&
-            "border-blue-200",
+            "border-primary/20",
         )}
       >
         <div className="flex w-full items-center justify-between">
@@ -72,7 +72,7 @@ export function ScheduleCalendar({
                   ? "bg-emerald-500"
                   : record.training_type === "rest"
                     ? "bg-slate-300"
-                    : "bg-blue-500",
+                    : "bg-primary",
               )}
             />
           )}
