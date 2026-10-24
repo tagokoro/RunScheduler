@@ -5,12 +5,13 @@ type MeResponse = {
   user: CurrentUser;
 };
 
-export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const response = await apiFetch("/me");
+export async function getCurrentUser(
+  cookieHeader?: string,
+): Promise<CurrentUser | null> {
+  const response = await apiFetch("/me", { cookieHeader });
 
-  if (!response.ok) {
-    return null;
-  }
+  if (response.status === 401) return null;
+  if (!response.ok) throw new Error("ログイン状態を確認できませんでした。");
 
   const data: MeResponse = await response.json();
   return data.user;

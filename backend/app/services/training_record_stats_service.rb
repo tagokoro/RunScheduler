@@ -42,12 +42,13 @@ class TrainingRecordStatsService
 
     user.training_records
       .where(completed: true)
+      .where.not(training_type: "rest")
       .group(period_sql)
       .order(period_sql)
       .pluck(
         period_sql,
-        Arel.sql("COALESCE(SUM(distance_km), 0)"),
-        Arel.sql("COALESCE(SUM(duration_minutes), 0)"),
+        Arel.sql("COALESCE(SUM(COALESCE(actual_distance_km, distance_km)), 0)"),
+        Arel.sql("COALESCE(SUM(COALESCE(actual_duration_minutes, duration_minutes)), 0)"),
         Arel.sql("COUNT(*)")
       )
       .map do |period, distance, duration, count|

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -39,7 +39,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000000) do
     t.date "race_date", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "weekly_availability", default: {}, null: false
     t.index ["user_id"], name: "index_profiles_on_user_id", unique: true
+  end
+
+  create_table "training_plan_commits", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.uuid "proposal_id", null: false
+    t.date "start_date", null: false
+    t.date "end_date", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["proposal_id"], name: "index_training_plan_commits_on_proposal_id", unique: true
+    t.index ["user_id"], name: "index_training_plan_commits_on_user_id"
   end
 
   create_table "training_records", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -55,6 +67,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000000) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "actual_distance_km", precision: 5, scale: 2
+    t.integer "actual_duration_minutes"
     t.index ["date"], name: "index_training_records_on_date"
     t.index ["user_id", "date"], name: "index_training_records_on_user_id_and_date", unique: true
     t.index ["user_id"], name: "index_training_records_on_user_id"
@@ -70,5 +84,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000000) do
 
   add_foreign_key "login_sessions", "users", on_delete: :cascade
   add_foreign_key "profiles", "users", on_delete: :cascade
+  add_foreign_key "training_plan_commits", "users", on_delete: :cascade
   add_foreign_key "training_records", "users", on_delete: :cascade
 end

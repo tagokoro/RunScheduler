@@ -1,4 +1,6 @@
 class TrainingRecordsController < ApplicationController
+  around_action :lock_record_writes, only: [ :update, :destroy ]
+
   def index
     training_records = current_user.training_records.order(:date)
 
@@ -39,7 +41,7 @@ class TrainingRecordsController < ApplicationController
     training_record = current_user.training_records.find_by(id: params[:id])
     return render json: { error: "training record not found" }, status: :not_found unless training_record
 
-    if training_record.update(training_record_params)
+    if training_record.update(params.permit(:completed, :actual_distance_km, :actual_duration_minutes, :feedback))
       render json: { training_record: serialize_training_record(training_record) }, status: :ok
     else
       render json: { error: training_record.errors.full_messages.join(", ") }, status: :unprocessable_entity
@@ -72,11 +74,14 @@ class TrainingRecordsController < ApplicationController
   end
 
   def save_training_records!(training_records)
-    ActiveRecord::Base.transaction do
+    current_user.with_lock do
       training_records.map do |record|
-        training_record = current_user.training_records.find_or_initialize_by(
+        training_record = current_user.training_records.lock.find_or_initialize_by(
           date: record["date"]
         )
+
+        # Regeneration must never erase a runner's recorded activity or reflection.
+        next serialize_training_record(training_record) if training_record.persisted? && training_record.activity_recorded?
 
         training_record.assign_attributes(
           training_type: record["training_type"],
@@ -84,8 +89,7 @@ class TrainingRecordsController < ApplicationController
           distance_km: record["distance_km"],
           duration_minutes: record["duration_minutes"],
           pace: record["pace"],
-          completed: record["completed"],
-          feedback: record["feedback"],
+          completed: false,
           notes: record["notes"]
         )
         training_record.save!
@@ -95,17 +99,10 @@ class TrainingRecordsController < ApplicationController
   end
 
   def serialize_training_record(training_record)
-    {
-      id: training_record.id,
-      date: training_record.date,
-      training_type: training_record.training_type,
-      description: training_record.description,
-      distance_km: training_record.distance_km&.to_f,
-      duration_minutes: training_record.duration_minutes,
-      pace: training_record.pace,
-      completed: training_record.completed,
-      feedback: training_record.feedback,
-      notes: training_record.notes
-    }
+    training_record.api_attributes
+  end
+
+  def lock_record_writes(&action)
+    current_user.with_lock(&action)
   end
 end

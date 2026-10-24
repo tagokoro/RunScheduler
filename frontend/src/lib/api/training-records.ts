@@ -1,6 +1,5 @@
-import { apiFetch } from "./client";
+import { apiFetch, apiErrorMessage } from "./client";
 import type {
-  CreateTrainingRecordsRequest,
   TrainingRecord,
   TrainingRecordStatsGroupBy,
   TrainingRecordStatsResponse,
@@ -15,10 +14,6 @@ type TrainingRecordResponse = {
   training_record: TrainingRecord;
 };
 
-export type CreateTrainingRecordsResult = {
-  error: string | null;
-  trainingRecords: TrainingRecord[] | null;
-};
 export type UpdateTrainingRecordResult = {
   error: string | null;
   trainingRecord: TrainingRecord | null;
@@ -40,37 +35,13 @@ export async function listTrainingRecords(
   });
 
   if (!response.ok) {
-    return null;
+    throw new Error(
+      await apiErrorMessage(response, "練習予定を取得できませんでした。"),
+    );
   }
 
   const data: TrainingRecordsResponse = await response.json();
   return data.training_records;
-}
-
-export async function createTrainingRecords(
-  payload: CreateTrainingRecordsRequest,
-): Promise<CreateTrainingRecordsResult> {
-  const response = await apiFetch("/training_records", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    return {
-      error: "トレーニング予定の生成に失敗しました。",
-      trainingRecords: null,
-    };
-  }
-
-  const data: TrainingRecordsResponse = await response.json();
-
-  return {
-    error: null,
-    trainingRecords: data.training_records,
-  };
 }
 
 export async function listTrainingRecordStats(
@@ -86,7 +57,7 @@ export async function listTrainingRecordStats(
 
   if (!response.ok) {
     return {
-      error: "統計情報の取得に失敗しました。",
+      error: await apiErrorMessage(response, "統計情報の取得に失敗しました。"),
       statsResponse: null,
     };
   }
@@ -113,7 +84,10 @@ export async function updateTrainingRecord(
 
   if (!response.ok) {
     return {
-      error: "トレーニング記録の更新に失敗しました。",
+      error: await apiErrorMessage(
+        response,
+        "実績を保存できませんでした。日付・距離・時間を確認してください。",
+      ),
       trainingRecord: null,
     };
   }

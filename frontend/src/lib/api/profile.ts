@@ -1,5 +1,5 @@
 import type { Profile, UpdateProfilePayload } from "@/types/profile";
-import { apiFetch } from "./client";
+import { apiFetch, apiErrorMessage } from "./client";
 
 type UpdateProfileResult = {
   error: string | null;
@@ -12,9 +12,11 @@ export async function getProfile(
     cookieHeader,
   });
 
-  if (!response.ok) {
-    return null;
-  }
+  if (response.status === 404) return null;
+  if (!response.ok)
+    throw new Error(
+      await apiErrorMessage(response, "プロフィールを取得できませんでした。"),
+    );
 
   const data: Profile = await response.json();
   return data;
@@ -33,6 +35,12 @@ export async function updateProfile(
     });
 
     if (response.ok) return { error: null };
+    return {
+      error: await apiErrorMessage(
+        response,
+        "入力内容を確認して、もう一度保存してください。",
+      ),
+    };
   } catch {
     return { error: "プロフィールの更新に失敗しました。" };
   }
